@@ -15,7 +15,7 @@ DISTANCIA_OITAVA = 12
 #oitava eh +12 ou -12, então 12n onde n pertence aos inteiros
 
 class Nota:
-    def __init__(self, valorMIDI, oitava, duracao, volume, instrumento="ACOUSTIC_GRAND_PIANO"):
+    def __init__(self, valorMIDI, oitava, duracao, volume, instrumento):
         self.valorMIDI = valorMIDI
         #esse valor vem da tabela General MIDI (biblioteca pygame.midi)
         #onde o dó central é o C4 = 60
@@ -27,6 +27,47 @@ class Nota:
         #um valor entre 0 e 127, por definição da biblioteca pygame.midi
         self.instrumento = instrumento
         #um dos inseridos na tabela de instrumentos
+
+    def tocar(self):
+        midi_out.set_instrument(self.instrumento)
+        midi_out.note_on(self.valorMIDI, self.volume)
+        #volume vai de 0 a 127
+        time.sleep(1)
+        #time.sleep() ajustar aqui o bpm
+        midi_out.note_off(self.valorMIDI, self.volume)
+        
+        
+class GeradorMusical:
+    def __init__(self):
+        self.lista_notas = []
+        self.listaInstrumentos = []
+        self.oitava_atual = 0
+        self.volume_atual = 20
+        self.instrumento_atual = "ACOUSTIC_GRAND_PIANO"
+        self.tabelaFuncoes = {
+            ' ': self.dobraVolume,
+            '+': self.aumentaOitava,
+            '-': self.diminuiOitava,
+            'O': self.repeteNota,
+            'I': self.repeteNota,
+            'U': self.repeteNota,
+            '?': self.notaAleatoria,
+            '%':self.trocaInstrumento,
+            'BPM+': self.aumentaBPM,
+            'BPM-': self.diminuiBPM,
+            ';': self.silencio
+        }
+
+        self.tabelaNotas = {
+            'A': 69 ,
+            'B': 71 ,
+            'C': 60 ,
+            'D': 62 ,
+            'E': 64 ,
+            'F': 65 ,
+            'G': 67 ,
+            'H': 70 
+        }
     
         self.tabelaInstrumentos = {
             'ACOUSTIC_GRAND_PIANO' : 0,	
@@ -56,46 +97,6 @@ class Nota:
             'TELEPHONE_RING' : 124
         }	
 
-    def tocar(self):
-        midi_out.set_instrument(self.tabelaInstrumentos[self.instrumento])
-        midi_out.note_on(self.valorMIDI, self.volume)
-        #volume vai de 0 a 127
-        time.sleep(1)
-        #time.sleep() ajustar aqui o bpm
-        midi_out.note_off(self.valorMIDI, self.volume)
-        
-        
-class GeradorMusical:
-    def __init__(self):
-        self.lista_notas = []
-        self.listaInstrumentos = []
-        self.oitava_atual = 0
-        self.volume_atual = 20
-        self.instrumento_atual = "ACOUSTIC_GRAND_PIANO"
-        self.tabelaFuncoes = {
-            ' ': self.dobraVolume,
-            '+': self.aumentaOitava,
-            '-': self.diminuiOitava,
-            'O': self.repeteNota,
-            'I': self.repeteNota,
-            'U': self.repeteNota,
-            '?': self.notaAleatoria,
-            '\n':self.trocaInstrumento,
-            'BPM+': self.aumentaBPM,
-            'BPM-': self.diminuiBPM,
-            ';': self.silencio
-        }
-        self.tabelaNotas = {
-            'A': 69 ,
-            'B': 71 ,
-            'C': 60 ,
-            'D': 62 ,
-            'E': 64 ,
-            'F': 65 ,
-            'G': 67 ,
-            'H': 70 
-        }
-
     def mapeiaTexto(self, texto):
           #assim fica melhor pra tartar caso tenha mais de um caractere, 
     # ai so tem q colocar mais de um caractere na tabela e mudar a constante de quantiadae
@@ -123,7 +124,9 @@ class GeradorMusical:
             #n encontrou o comando ve se eh nota
             elif texto[i] in self.tabelaNotas:
                 valorMIDI_mapeado = self.tabelaNotas[texto[i]]
-                nota = self.setNota(valorMIDI_mapeado)
+                instrumento_mapeado = self.tabelaInstrumentos[self.instrumento_atual]
+                #mapeio aqui instrumento e valorMIDI
+                nota = self.setNota(valorMIDI_mapeado, instrumento_mapeado)
                 i += 1
     
             #pra n dar problema com caracteres desconhecidos
@@ -139,12 +142,12 @@ class GeradorMusical:
             return funcaoMusical()
         return None
 
-    def setNota(self, valorMIDI_mapeado):
+    def setNota(self, valorMIDI_mapeado, instrumento_mapeado):
         nota = Nota(valorMIDI_mapeado + (DISTANCIA_OITAVA * self.oitava_atual), 
                     self.oitava_atual, 
                     1, 
                     self.volume_atual, 
-                    self.instrumento_atual)
+                    instrumento_mapeado)
         return nota
 
     def dobraVolume(self):
@@ -161,13 +164,12 @@ class GeradorMusical:
         self.oitava_atual -= 1
 
     def trocaInstrumento(self):
-        i = 0
-        #iterador = iter(self.tabelaInstrumentos)
-        #for chave in iterador:
-        #    if chave == self.instrumento_atual:
-        #        prox_instrumento = next(iterador,None)
-        #        break
-        #self.instrumento_atual = self.tabelaInstrumentos[prox_instrumento]
+        iterador = iter(self.tabelaInstrumentos)
+        for chave in iterador:
+            if chave == self.instrumento_atual:
+                prox_instrumento = next(iterador,None)
+                break
+        self.instrumento_atual = prox_instrumento
 #POSSIVELMENTE FAZER ALGO DESSE JEITO SE FOR PASSAR TABELA DE INSTRUMENTOS PRA DENTRO DE GERADORMUSICAL 
 #AO INVÉS DE DENTRO DE NOTAMUSICAL
 
@@ -191,7 +193,7 @@ class GeradorMusical:
 GeradorTeste = GeradorMusical()
 
 listaNotas = []
-entrada = "CC +CC  +CC"
+entrada = "CC +CC  +%%%%%%%%%CC"
 GeradorTeste.mapeiaTexto(entrada)
 listaNotas = GeradorTeste.lista_notas
 
@@ -199,3 +201,4 @@ for nota in listaNotas:
     nota.tocar()
     print(nota.volume)
     print(nota.oitava)
+    print(nota.instrumento)
