@@ -12,17 +12,26 @@ midi_out = pygame.midi.Output(port, 0)
 
 QUANTIDADE_MAXIMA_DE_CARACTERES_FUNCAO = 4
 DISTANCIA_OITAVA = 12
+OITAVA_DEFAULT = 0
+VOLUME_DEFAULT = 127 #(máximo)
+BPM_DEFAULT = 120
+MINUTO = 60
+UNIDADE_BPM = 80
 #oitava eh +12 ou -12, então 12n onde n pertence aos inteiros
 
+def bpmToMilliseconds(bpm):
+      tempo_ms = 1 / (bpm / MINUTO)
+      return tempo_ms
+
 class Nota:
-    def __init__(self, valorMIDI, oitava, duracao, volume, instrumento):
+    def __init__(self, valorMIDI, oitava, bpm, volume, instrumento):
         self.valorMIDI = valorMIDI
         #esse valor vem da tabela General MIDI (biblioteca pygame.midi)
         #onde o dó central é o C4 = 60
         self.oitava = oitava
         #ex: +1, 0, -1, -2
-        self.duracao = duracao
-        #delay entre note on note off (duracao da nota)
+        self.bpm = bpm
+        #delay entre note on note off (bpm da nota)
         self.volume = volume
         #um valor entre 0 e 127, por definição da biblioteca pygame.midi
         self.instrumento = instrumento
@@ -32,17 +41,17 @@ class Nota:
         midi_out.set_instrument(self.instrumento)
         midi_out.note_on(self.valorMIDI, self.volume)
         #volume vai de 0 a 127
-        time.sleep(1)
+        time.sleep(bpmToMilliseconds(self.bpm))
         #time.sleep() ajustar aqui o bpm
         midi_out.note_off(self.valorMIDI, self.volume)
-        
         
 class GeradorMusical:
     def __init__(self):
         self.lista_notas = []
         self.listaInstrumentos = []
-        self.oitava_atual = 0
-        self.volume_atual = 20
+        self.oitava_atual = OITAVA_DEFAULT
+        self.volume_atual = VOLUME_DEFAULT
+        self.bpm_atual = BPM_DEFAULT
         self.instrumento_atual = "ACOUSTIC_GRAND_PIANO"
         self.tabelaFuncoes = {
             ' ': self.dobraVolume,
@@ -145,7 +154,7 @@ class GeradorMusical:
     def setNota(self, valorMIDI_mapeado, instrumento_mapeado):
         nota = Nota(valorMIDI_mapeado + (DISTANCIA_OITAVA * self.oitava_atual), 
                     self.oitava_atual, 
-                    1, 
+                    self.bpm_atual, 
                     self.volume_atual, 
                     instrumento_mapeado)
         return nota
@@ -173,19 +182,25 @@ class GeradorMusical:
 #POSSIVELMENTE FAZER ALGO DESSE JEITO SE FOR PASSAR TABELA DE INSTRUMENTOS PRA DENTRO DE GERADORMUSICAL 
 #AO INVÉS DE DENTRO DE NOTAMUSICAL
 
-    def repeteNota():
-        i=0
+    def repeteNota(self):
+        self.lista_notas.append(self.lista_notas[len(self.lista_notas) - 1])
 
     def notaAleatoria():
         i=0
     
-    def aumentaBPM():
-        i=0
+    #time.sleep(segundos), vamos definir um bpm padrão = 120 bpm
+    #assim temos 2 batidas por segundo, ou seja, 
+    #time.sleep(0.5) por padrão
+    #aumentar em 80 unidades seria -> 120 + 80 = 200
+    #portanto, time.sleep(200 / 60)
+    def aumentaBPM(self):
+        self.bpm_atual += UNIDADE_BPM
     
-    def diminuiBPM():
-        i=0
+    def diminuiBPM(self):
+        self.bpm_atual -= UNIDADE_BPM
+    #não está nas especificações do programa, mas deve poder diminuir na interface
 
-    def silencio():
+    def silencio(self):
         i=0
     
     #def notaAleatoria():
@@ -193,7 +208,7 @@ class GeradorMusical:
 GeradorTeste = GeradorMusical()
 
 listaNotas = []
-entrada = "CC +CC  +%%%%%%%%%CC"
+entrada = "EEBPM+EEbPM-BPM-EE"
 GeradorTeste.mapeiaTexto(entrada)
 listaNotas = GeradorTeste.lista_notas
 
@@ -202,3 +217,4 @@ for nota in listaNotas:
     print(nota.volume)
     print(nota.oitava)
     print(nota.instrumento)
+    print(nota.bpm)
