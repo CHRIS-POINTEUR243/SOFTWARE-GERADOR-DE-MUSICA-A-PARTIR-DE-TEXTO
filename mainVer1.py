@@ -202,19 +202,50 @@ class GeradorMusical:
 
     def silencio(self):
         i=0
-    
     #def notaAleatoria():
+#----------------------------------------------------------------------------------------------CLASS PROCESSA TEXTO
+class ProcessaTexto:
+    def __init__(self, tabelaCaracteres,tabelaNotas,textoEntrada):
+        self.tabela=tabelaCaracteres
+        self.tabelaNotas=tabelaNotas
+        self.texto=textoEntrada
+        self.listaDeCaracteres=[]
+            
+    def processaTextoEmLista(self):
+        i = 0
+        encontrou=False
+        while i < len(self.texto):
+        
+            for tamanhoString in range(QUANTIDADE_MAXIMA_DE_CARACTERES_FUNCAO, 0, -1):
+                if (i + tamanhoString <= len(self.texto)) and (self.texto[i:i+tamanhoString] in self.tabela):
+                    self.listaDeCaracteres.append(self.texto[i:i+tamanhoString])
+                    i += tamanhoString
+                    encontrou = True
+                    break
+            
+            if encontrou:
+                encontrou = False
+                continue
+            elif self.texto[i] in self.tabelaNotas:
+                self.listaDeCaracteres.append(self.texto[i]) 
+                i += 1
+            else:
+                i += 1
+        
+        return self.listaDeCaracteres
+    
+#-----------------------------------------------------------------------------------MAIN
 
 GeradorTeste = GeradorMusical()
+texto = ProcessaTexto(GeradorTeste.tabelaFuncoes,GeradorTeste.tabelaNotas,"ABABABPM+'++==0AEE,EE")
+texto.processaTextoEmLista()
+print (texto.listaDeCaracteres)
 
 listaNotas = []
-entrada = "EEBPM+EEbPM-BPM-EE"
-GeradorTeste.mapeiaTexto(entrada)
+GeradorTeste.mapeiaTexto(texto.listaDeCaracteres)
 listaNotas = GeradorTeste.lista_notas
 
 for nota in listaNotas:
-    nota.tocar()
-    print(nota.volume)
-    print(nota.oitava)
-    print(nota.instrumento)
-    print(nota.bpm)
+    #nota.tocar()
+    print(nota.valorMIDI,nota.volume, nota.oitava,nota.instrumento,nota.bpm)
+
