@@ -106,41 +106,18 @@ class GeradorMusical:
             'TELEPHONE_RING' : 124
         }	
 
-    def mapeiaTexto(self, texto):
-          #assim fica melhor pra tartar caso tenha mais de um caractere, 
-    # ai so tem q colocar mais de um caractere na tabela e mudar a constante de quantiadae
-        i = 0
-        texto=texto.upper()
-        nota = None
-        comando_encontrado = False
-        while i < len(texto):
-            
-            # Verifica da quantidade maxima ate a minima 1 
-            for tamanhoString in range(QUANTIDADE_MAXIMA_DE_CARACTERES_FUNCAO, 0, -1):
-                #se ja acabou o texto ou esta na tabela de funcoes
-                if (i + (tamanhoString - 1) < len(texto)) and (texto[i:i+tamanhoString] in self.tabelaFuncoes):
-                    comando = texto[i:i+tamanhoString]
+        def mapeiaTexto(self, listaDeCaracteres):
+    #assim fica melhor pra tartar caso tenha mais de um caractere, 
+        for comando in listaDeCaracteres:
+            nota=None
+            if  comando in self.tabelaFuncoes:
                     self.obterFuncaoMusical(comando)
-                    i += tamanhoString
-                    comando_encontrado = True
-                    break  #sai do for quando encontrar um comando na tabela
-            
-            if comando_encontrado:
-                comando_encontrado = False
-                continue  
-                #ja achou o comando na tabela vai pro proximo caractere
 
-            #n encontrou o comando ve se eh nota
-            elif texto[i] in self.tabelaNotas:
-                valorMIDI_mapeado = self.tabelaNotas[texto[i]]
+            elif comando in self.tabelaNotas:
+                valorMIDI_mapeado = self.tabelaNotas[comando]
                 instrumento_mapeado = self.tabelaInstrumentos[self.instrumento_atual]
                 #mapeio aqui instrumento e valorMIDI
                 nota = self.setNota(valorMIDI_mapeado, instrumento_mapeado)
-                i += 1
-    
-            #pra n dar problema com caracteres desconhecidos
-            else:
-                i += 1 
             # pra n dar problema caso n crie nota
             if nota is not None:
                 self.lista_notas.append(nota)
@@ -248,5 +225,6 @@ listaNotas = GeradorTeste.lista_notas
 for nota in listaNotas:
     #nota.tocar()
     print(nota.valorMIDI,nota.volume, nota.oitava,nota.instrumento,nota.bpm)
+
 
 
