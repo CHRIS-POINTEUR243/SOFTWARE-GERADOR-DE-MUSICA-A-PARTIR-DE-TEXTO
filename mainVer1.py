@@ -210,7 +210,7 @@ class ProcessaTexto:
         self.tabelaNotas=tabelaNotas
         self.texto=textoEntrada
         self.listaDeCaracteres=[]
-            
+      #le o texto e somente com os caracteres q tem na tabela ele cria uma lista
     def processaTextoEmLista(self):
         i = 0
         encontrou=False
@@ -248,4 +248,5 @@ listaNotas = GeradorTeste.lista_notas
 for nota in listaNotas:
     #nota.tocar()
     print(nota.valorMIDI,nota.volume, nota.oitava,nota.instrumento,nota.bpm)
+
 
