@@ -147,7 +147,7 @@ class GeradorMusical:
                     self.obterFuncaoMusical(comando)
 #musdar aqui
             else:
-                nota=Nota(comando,self.oitava_atual,self.bpm_atual,self.volume_atual,self.instrumento_atual)
+                nota=Nota(comando,self.oitava_atual,self.bpm_atual,self.volume_atual,self.tabelaInstrumentos.get(self.instrumento_atual))
                 
             # pra n dar problema caso n crie nota
             if nota is not None:
