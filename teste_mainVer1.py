@@ -209,6 +209,26 @@ class GeradorMusical:
     def silencio(self):
         # não adiciona nota nenhuma = pausa
         pass
+        
+    def salvarParaMidi(self, nome_arquivo="musica_gerada.mid"):
+        # precisa baixar a biblioteca midiutil
+        midi = MIDIFile(1)
+        midi.addTrackName(0, 0, "Música Gerada")
+        midi.addTempo(0, 0, BPM_DEFAULT)
+            
+        tempoAtual = 0
+            
+        for nota in self.lista_notas:
+            if nota.valorMIDI is not None:
+            
+                instrumento_midi = self.tabelaInstrumentos[nota.instrumento]
+                midi.addProgramChange(0, 0, tempoAtual, instrumento_midi)
+                frequencia = nota.valorMIDI + (nota.oitava * DISTANCIA_OITAVA)
+                    
+                duracao = bpmToMilliseconds(nota.bpm)
+                    
+                midi.addNote(0, 0, frequencia, tempoAtual, duracao, nota.volume)
+                tempoAtual += duracao
 
 
 # ------------------------------------------------------------------------------------
