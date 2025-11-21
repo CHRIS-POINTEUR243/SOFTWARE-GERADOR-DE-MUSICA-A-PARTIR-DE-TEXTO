@@ -247,7 +247,7 @@ class GeradorMusical:
         for nota in self.lista_notas:
             if nota.valorMIDI is not None:
             
-                instrumento_midi = self.tabelaInstrumentos[nota.instrumento]
+                instrumento_midi = nota.instrumento
                 midi.addProgramChange(0, 0, tempoAtual, instrumento_midi)
                 frequencia = nota.valorMIDI + (nota.oitava * DISTANCIA_OITAVA)
                     
