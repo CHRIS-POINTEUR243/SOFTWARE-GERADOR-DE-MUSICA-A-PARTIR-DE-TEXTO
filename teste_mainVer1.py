@@ -3,6 +3,7 @@ import pygame.midi
 import os
 import time
 import random
+from midiutil import MIDIFile
 
 pygame.init()
 pygame.mixer.init()
@@ -27,8 +28,8 @@ def bpmToMilliseconds(bpm):
 
 
 class Nota:
-    def __init__(self, valorMIDI, oitava, bpm, volume, instrumento):
-        self.valorMIDI = valorMIDI
+    def __init__(self, caractere, oitava, bpm, volume, instrumento):
+        self.caractere=caractere
         # esse valor vem da tabela General MIDI (pygame.midi)
         # onde o dó central é o C4 = 60
         self.oitava = oitava
@@ -39,6 +40,23 @@ class Nota:
         # 0 a 127
         self.instrumento = instrumento
         # um dos inseridos na tabela de instrumentos
+        self.tabelaNotas = {
+            'A': 69 ,
+            'B': 71 ,
+            'C': 60 ,
+            'D': 62 ,
+            'E': 64 ,
+            'F': 65 ,
+            'G': 67 ,
+            'H': 70 
+        }
+         #coloquei aqui pra ja inicializar quando criar uma instancia de niota, ai n precisa chamar nenhuma funcao
+        #isso ta certo? n sei se n teria q fazer
+        if caractere in self.tabelaNotas:
+            self.valorMIDI = self.tabelaNotas[caractere]
+        else:
+            self.valorMIDI = None 
+        #coloq
 
     def tocar(self):
         midi_out.set_instrument(self.instrumento)
@@ -48,13 +66,14 @@ class Nota:
 
 
 class GeradorMusical:
-    def __init__(self):
+    def __init__(self,texto):
         self.lista_notas = []
         self.listaInstrumentos = []
         self.oitava_atual = OITAVA_DEFAULT
         self.volume_atual = VOLUME_DEFAULT
         self.bpm_atual = BPM_DEFAULT
         self.instrumento_atual = "ACOUSTIC_GRAND_PIANO"
+        self.tabelaNotas = ['A','B','C','D','E','F','G','H']
 
         self.tabelaFuncoes = {
             ' ': self.dobraVolume,
@@ -68,17 +87,6 @@ class GeradorMusical:
             'BPM+': self.aumentaBPM,
             'BPM-': self.diminuiBPM,
             ';': self.silencio,
-        }
-
-        self.tabelaNotas = {
-            'A': 69,
-            'B': 71,
-            'C': 60,
-            'D': 62,
-            'E': 64,
-            'F': 65,
-            'G': 67,
-            'H': 70,
         }
 
         self.tabelaInstrumentos = {
@@ -108,33 +116,40 @@ class GeradorMusical:
             'SYNTH_BASS_2': 39,
             'TELEPHONE_RING': 124,  # telefone tocando
         }
+        self.listaCaracteres=[]
+        self.processaTextoEmLista(texto)
 
-    def mapeiaTexto(self, listaDeCaracteres):
+        self.lista_notas=[]
+        self.mapeiaTexto()	
+        #aqui eh so chamar o metodo na função init, ele mesmp ja preenche a lista notas, n retornando nada
+
+    def novaMusica(self,texto):
+        self.processaTextoEmLista(texto)
+        self.mapeiaTexto()
+       
+
+    def mapeiaTexto(self):
         # percorre a lista de tokens já processados
-        for idx, comando in enumerate(listaDeCaracteres):
+        for idx, comando in enumerate(self.listaCaracteres):
             nota = None
 
             # vogais O/I/U – regra especial:
             if comando in ('O', 'I', 'U'):
                 # se token anterior é nota (A–H), repete nota
-                if idx > 0 and listaDeCaracteres[idx - 1] in self.tabelaNotas:
+                if idx > 0 and self.listaCaracteres[idx - 1] in self.tabelaNotas:
                     self.repeteNota()
                 else:
                     # senão, toca telefone
                     self.tocaTelefone()
                 continue
 
-            # comandos gerais (espaço, BPM, +, -, %, ;)
-            if comando in self.tabelaFuncoes:
-                self.obterFuncaoMusical(comando)
-
-            # notas A–H
-            elif comando in self.tabelaNotas:
-                valorMIDI_mapeado = self.tabelaNotas[comando]
-                instrumento_mapeado = self.tabelaInstrumentos[self.instrumento_atual]
-                nota = self.setNota(valorMIDI_mapeado, instrumento_mapeado)
-
-            # se criou nota, guarda
+            if  comando in self.tabelaFuncoes:
+                    self.obterFuncaoMusical(comando)
+#musdar aqui
+            else:
+                nota=Nota(comando,self.oitava_atual,self.bpm_atual,self.volume_atual,self.instrumento_atual)
+                
+            # pra n dar problema caso n crie nota
             if nota is not None:
                 self.lista_notas.append(nota)
 
@@ -144,16 +159,27 @@ class GeradorMusical:
             return funcaoMusical()
         return None
 
-    def setNota(self, valorMIDI_mapeado, instrumento_mapeado):
-        nota = Nota(
-            valorMIDI_mapeado + (DISTANCIA_OITAVA * self.oitava_atual),
-            self.oitava_atual,
-            self.bpm_atual,
-            self.volume_atual,
-            instrumento_mapeado,
-        )
-        return nota
-
+    def processaTextoEmLista(self,texto):
+        i = 0
+        encontrou=False
+        while i < len(texto):
+        
+            for tamanhoString in range(QUANTIDADE_MAXIMA_DE_CARACTERES_FUNCAO, 0, -1):
+                if (i + tamanhoString <= len(texto)) and (texto[i:i+tamanhoString] in self.tabelaFuncoes):
+                    self.listaCaracteres.append(texto[i:i+tamanhoString])
+                    i += tamanhoString
+                    encontrou = True
+                    break
+            
+            if encontrou:
+                encontrou = False
+                continue
+            elif texto[i] in self.tabelaNotas:
+                self.listaCaracteres.append(texto[i]) 
+                i += 1
+            else:
+                i += 1
+        
     def dobraVolume(self):
         volume_dobrado = self.volume_atual * 2
         if volume_dobrado <= 127:
@@ -232,60 +258,28 @@ class GeradorMusical:
 
 
 # ------------------------------------------------------------------------------------
-# CLASS PROCESSA TEXTO
-class ProcessaTexto:
-    def __init__(self, tabelaCaracteres, tabelaNotas, textoEntrada):
-        self.tabela = tabelaCaracteres
-        self.tabelaNotas = tabelaNotas
-        self.texto = textoEntrada
-        self.listaDeCaracteres = []
 
-    # lê o texto e somente com os caracteres q tem na tabela ele cria uma lista
-    def processaTextoEmLista(self):
-        i = 0
-        encontrou = False
-        while i < len(self.texto):
-
-            for tamanhoString in range(QUANTIDADE_MAXIMA_DE_CARACTERES_FUNCAO, 0, -1):
-                if (i + tamanhoString <= len(self.texto)) and (self.texto[i:i + tamanhoString] in self.tabela):
-                    self.listaDeCaracteres.append(self.texto[i:i + tamanhoString])
-                    i += tamanhoString
-                    encontrou = True
-                    break
-
-            if encontrou:
-                encontrou = False
-                continue
-            elif self.texto[i] in self.tabelaNotas:
-                self.listaDeCaracteres.append(self.texto[i])
-                i += 1
-            else:
-                i += 1
-
-        return self.listaDeCaracteres
 
 
 # -----------------------------------------------------------------------------------
 # TESTES
 
 if __name__ == "__main__":
-    gm = GeradorMusical()
+    
 
     def roda_teste(texto, descricao):
-        proc = ProcessaTexto(gm.tabelaFuncoes, gm.tabelaNotas, texto)
-        proc.processaTextoEmLista()
-        print(f"\n=== {descricao} ===")
-        print("Entrada:", repr(texto))
-        print("Tokens:", proc.listaDeCaracteres)
+        print (descricao)
 
+        gm= GeradorMusical(texto)
         # resetar estado do gerador
-        gm.lista_notas = []
+        '''
+        isso ja ta no init n precisa
         gm.oitava_atual = OITAVA_DEFAULT
         gm.volume_atual = VOLUME_DEFAULT
-        gm.bpm_atual = BPM_DEFAULT
-        gm.instrumento_atual = "ACOUSTIC_GRAND_PIANO"
+      gm.bpm_atual = BPM_DEFAULT
+      gm.instrumento_atual = "ACOUSTIC_GRAND_PIANO"
 
-        gm.mapeiaTexto(proc.listaDeCaracteres)
+       '''
 
         for n in gm.lista_notas:
             print(
@@ -299,7 +293,7 @@ if __name__ == "__main__":
         #  ouvir son tocar aqui 
         for n in gm.lista_notas:
              n.tocar()
-
+        gm.salvarParaMidi(descricao)
 
     # testes aqui para acompanhar:
     roda_teste("AB", "Notas simples A e B")
