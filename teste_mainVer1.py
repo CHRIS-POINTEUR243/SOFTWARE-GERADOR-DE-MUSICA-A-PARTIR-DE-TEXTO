@@ -21,15 +21,13 @@ MINUTO = 60
 UNIDADE_BPM = 80
 # oitava eh +12 ou -12, então 12n onde n pertence aos inteiros
 
-
 def bpmToMilliseconds(bpm):
     tempo = 1 / (bpm / MINUTO)
     return tempo
 
-
 class Nota:
     def __init__(self, caractere, oitava, bpm, volume, instrumento):
-        self.caractere=caractere
+        self.caractere = caractere
         # esse valor vem da tabela General MIDI (pygame.midi)
         # onde o dó central é o C4 = 60
         self.oitava = oitava
@@ -56,13 +54,13 @@ class Nota:
             self.valorMIDI = self.tabelaNotas[caractere]
         else:
             self.valorMIDI = None 
-        #coloq
 
     def tocar(self):
+        notaMIDI = self.valorMIDI + (DISTANCIA_OITAVA * self.oitava)
         midi_out.set_instrument(self.instrumento)
-        midi_out.note_on(self.valorMIDI, self.volume)
+        midi_out.note_on(notaMIDI, self.volume)
         time.sleep(bpmToMilliseconds(self.bpm))
-        midi_out.note_off(self.valorMIDI, self.volume)
+        midi_out.note_off(notaMIDI, self.volume)
 
 
 class GeradorMusical:
@@ -83,7 +81,7 @@ class GeradorMusical:
             'I': self.notaOuTelefone,
             'U': self.notaOuTelefone,
             '?': self.notaAleatoria,
-            '%': self.trocaInstrumento,
+            '%': self.trocaInstrumentoAleatorio,
             'BPM+': self.aumentaBPM,
             'BPM-': self.diminuiBPM,
             ';': self.silencio,
@@ -193,26 +191,30 @@ class GeradorMusical:
     def diminuiOitava(self):
         self.oitava_atual -= 1
 
-    def trocaInstrumento(self):
-        iterador = iter(self.tabelaInstrumentos)
-        prox_instrumento = self.instrumento_atual
-        for chave in iterador:
-            if chave == self.instrumento_atual:
-                prox_instrumento = next(iterador, self.instrumento_atual)
-                break
-        self.instrumento_atual = prox_instrumento
+    #def trocaInstrumento(self):
+    #    iterador = iter(self.tabelaInstrumentos)
+    #    prox_instrumento = self.instrumento_atual
+    #    for chave in iterador:
+    #        if chave == self.instrumento_atual:
+    #            prox_instrumento = next(iterador, self.instrumento_atual)
+    #            break
+    #    self.instrumento_atual = prox_instrumento
+
+    def trocaInstrumentoAleatorio(self):
+        novo_instrumento = random.choice(list(self.tabelaInstrumentos.keys()))
+        while novo_instrumento == self.instrumento_atual:
+            novo_instrumento = random.choice(list(self.tabelaInstrumentos.keys()))
+        self.instrumento_atual = novo_instrumento
 
     def repeteNota(self):
         if self.lista_notas:
             self.lista_notas.append(self.lista_notas[-1])
 
     def notaAleatoria(self):
-        # escolhe uma letra entre A–H
-        letra = random.choice(list(self.tabelaNotas.keys()))
-        valorMIDI_mapeado = self.tabelaNotas[letra]
-        instrumento_mapeado = self.tabelaInstrumentos[self.instrumento_atual]
-        nota = self.setNota(valorMIDI_mapeado, instrumento_mapeado)
-        self.lista_notas.append(nota)
+        letra = random.choice(self.tabelaNotas)
+        nota=Nota(letra,self.oitava_atual,self.bpm_atual,self.volume_atual,self.tabelaInstrumentos.get(self.instrumento_atual))
+        if nota is not None:
+                self.lista_notas.append(nota)
 
     def notaOuTelefone(self):
         # este método não é usado diretamente, deixei pra compatibilidade na tabelaFuncoes
@@ -220,11 +222,11 @@ class GeradorMusical:
         pass
 
     def tocaTelefone(self):
-        telefone_instr = self.tabelaInstrumentos['TELEPHONE_RING']
-        # escolhi Dó central como nota base do telefone
-        valorMIDI_mapeado = self.tabelaNotas['C']
-        nota = self.setNota(valorMIDI_mapeado, telefone_instr)
-        self.lista_notas.append(nota)
+        som_telefone = 'TELEPHONE_RING'
+        letra = 'C'
+        nota=Nota(letra,self.oitava_atual,self.bpm_atual,self.volume_atual,self.tabelaInstrumentos.get(som_telefone))
+        if nota is not None:
+            self.lista_notas.append(nota)
 
     def aumentaBPM(self):
         self.bpm_atual += UNIDADE_BPM
@@ -233,8 +235,10 @@ class GeradorMusical:
         self.bpm_atual -= UNIDADE_BPM
 
     def silencio(self):
-        # não adiciona nota nenhuma = pausa
-        pass
+        volume_zerado = 0
+        nota=Nota('C',self.oitava_atual,self.bpm_atual,volume_zerado,self.tabelaInstrumentos.get(self.instrumento_atual))
+        if nota is not None:
+            self.lista_notas.append(nota)
         
     def salvarParaMidi(self, nome_arquivo="musica_gerada.mid"):
         # precisa baixar a biblioteca midiutil
@@ -246,40 +250,29 @@ class GeradorMusical:
             
         for nota in self.lista_notas:
             if nota.valorMIDI is not None:
+                if nota.volume > 0:
             
-                instrumento_midi = nota.instrumento
-                midi.addProgramChange(0, 0, tempoAtual, instrumento_midi)
-                frequencia = nota.valorMIDI + (nota.oitava * DISTANCIA_OITAVA)
-                    
-                duracao = bpmToMilliseconds(nota.bpm)
-                    
-                midi.addNote(0, 0, frequencia, tempoAtual, duracao, nota.volume)
-                tempoAtual += duracao
+                    instrumento_midi = nota.instrumento
+                    midi.addProgramChange(0, 0, tempoAtual, instrumento_midi)
+                    frequencia = nota.valorMIDI + (nota.oitava * DISTANCIA_OITAVA)
 
+                    duracao = bpmToMilliseconds(nota.bpm)
 
-# ------------------------------------------------------------------------------------
-
-
+                    midi.addNote(0, 0, frequencia, tempoAtual, duracao, nota.volume)
+                    tempoAtual += duracao
+                else:
+                    #nota com volume 0 = silencio
+                    duracao = bpmToMilliseconds(nota.bpm)
+                    tempoAtual += duracao
 
 # -----------------------------------------------------------------------------------
 # TESTES
-
 if __name__ == "__main__":
     
-
     def roda_teste(texto, descricao):
         print (descricao)
-
         gm= GeradorMusical(texto)
         # resetar estado do gerador
-        '''
-        isso ja ta no init n precisa
-        gm.oitava_atual = OITAVA_DEFAULT
-        gm.volume_atual = VOLUME_DEFAULT
-      gm.bpm_atual = BPM_DEFAULT
-      gm.instrumento_atual = "ACOUSTIC_GRAND_PIANO"
-
-       '''
 
         for n in gm.lista_notas:
             print(
@@ -290,14 +283,16 @@ if __name__ == "__main__":
                 "bpm:", n.bpm,
             )
 
-        #  ouvir son tocar aqui 
+        #  ouvir som tocar aqui 
         for n in gm.lista_notas:
              n.tocar()
         gm.salvarParaMidi(descricao)
 
     # testes aqui para acompanhar:
-    roda_teste("AB", "Notas simples A e B")
+    roda_teste("AABB", "Notas simples A e B")
     roda_teste("AO", "O depois de nota (repete A)")
-    roda_teste("XO", "O sem nota anterior (telefone)")
-    roda_teste("C?C?C?", "? gerando notas aleatórias entre A–H")
-    roda_teste("C ; C", "Silêncio com ';' entre duas notas")
+    roda_teste("C+O", "O sem nota anterior (telefone)")
+    roda_teste("C???", "? gerando notas aleatórias entre A–H")
+    roda_teste("C;;C", "Silêncio com ';' entre duas notas")
+    roda_teste("CBPM+CCCBPM-CC++CC---CC", "Aumento/diminuição do bpm + oitavas")
+    roda_teste("CC%CC%CC%CC%CC", "Troca instrumentos aleatoriamente")
