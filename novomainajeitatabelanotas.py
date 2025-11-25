@@ -12,7 +12,7 @@ pygame.midi.init()
 port = pygame.midi.get_default_output_id()
 midi_out = pygame.midi.Output(port, 0)
 
-QUANTIDADE_MAXIMA_DE_CARACTERES_FUNCAO = 4
+
 DISTANCIA_OITAVA = 12
 NOTA_DEFAULT = 'C'
 OITAVA_DEFAULT = 0
@@ -95,13 +95,13 @@ class Instrumento:
     }
 
 class GeradorMusical:
-    def __init__(self,texto):
+    def __init__(self,texto,instrumento="ACOUSTIC_GRAND_PIANO",oitava=OITAVA_DEFAULT,volume=VOLUME_DEFAULT,bpm=BPM_DEFAULT):
         self.lista_notas = []
         self.listaInstrumentos = []
-        self.oitava_atual = OITAVA_DEFAULT
-        self.volume_atual = VOLUME_DEFAULT
-        self.bpm_atual = BPM_DEFAULT
-        self.instrumento_atual = "ACOUSTIC_GRAND_PIANO"
+        self.oitava_atual = oitava
+        self.volume_atual = volume
+        self.bpm_atual = bpm
+        self.instrumento_atual = instrumento
 
         self.tabelaFuncoes = {
             ' ': self.dobraVolume,
@@ -150,26 +150,27 @@ class GeradorMusical:
             return funcaoMusical()
         return None
 
-    def processaTextoEmLista(self,texto):
-        i = 0
-        encontrou=False
-        while i < len(texto):
-        
-            for tamanhoString in range(QUANTIDADE_MAXIMA_DE_CARACTERES_FUNCAO, 0, -1):
-                if (i + tamanhoString <= len(texto)) and (texto[i:i+tamanhoString] in self.tabelaFuncoes):
-                    self.listaCaracteres.append(texto[i:i+tamanhoString])
-                    i += tamanhoString
-                    encontrou = True
-                    break
-            
-            if encontrou:
-                encontrou = False
-                continue
-            elif texto[i] in Nota.tabelaNotas:
-                self.listaCaracteres.append(texto[i]) 
-                i += 1
-            else:
-                i += 1
+     def processaTextoEmLista(self,texto):
+            i = 0
+            encontrou=False
+            tamanhoTexto=len(texto)
+            while i < tamanhoTexto:
+    
+                for tamanhoString in range(tamanhoTexto, 0, -1):
+                    if (i + tamanhoString <= len(texto)) and (texto[i:i+tamanhoString] in self.tabelaFuncoes):
+                        self.listaCaracteres.append(texto[i:i+tamanhoString])
+                        i += tamanhoString
+                        encontrou = True
+                        break
+                
+                if encontrou:
+                    encontrou = False
+                    continue
+                elif texto[i] in Nota.tabelaNotas:
+                    self.listaCaracteres.append(texto[i]) 
+                    i += 1
+                else:
+                    i += 1
         
     def dobraVolume(self):
         volume_dobrado = self.volume_atual * 2
@@ -303,4 +304,5 @@ if __name__ == "__main__":
     roda_teste("CC%CC%CC%CC%CC", "Troca instrumentos aleatoriamente")
     roda_teste("CCBPM+CC++CC", "Troca instrumentos aleatoriamente")
     roda_teste("AOOAO", "Troca instrumentos aleatoriamente")
+
 
