@@ -150,7 +150,7 @@ class GeradorMusical:
             return funcaoMusical()
         return None
 
-     def processaTextoEmLista(self,texto):
+    def processaTextoEmLista(self,texto):
             i = 0
             encontrou=False
             tamanhoTexto=len(texto)
@@ -304,5 +304,6 @@ if __name__ == "__main__":
     roda_teste("CC%CC%CC%CC%CC", "Troca instrumentos aleatoriamente")
     roda_teste("CCBPM+CC++CC", "Troca instrumentos aleatoriamente")
     roda_teste("AOOAO", "Troca instrumentos aleatoriamente")
+
 
 
