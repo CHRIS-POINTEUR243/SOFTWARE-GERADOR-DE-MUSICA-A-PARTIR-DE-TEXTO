@@ -248,29 +248,36 @@ class GeradorMusical:
         if nota is not None:
             self.lista_notas.append(nota)
         
+                
     def salvarParaMidi(self, nome_arquivo="musica_gerada.mid"):
         midi = MIDIFile(1)
         midi.addTrackName(0, 0, "Música Gerada")
-        midi.addTempo(0, 0, BPM_DEFAULT)
+        midi.addTempo(0, 0, self.bpm_atual)
             
         tempoAtual = 0
             
         for nota in self.lista_notas:
             if nota.valorMIDI is not None:
-                if nota.volume > 0:
-            
-                    instrumento_midi = nota.instrumento
-                    midi.addProgramChange(0, 0, tempoAtual, instrumento_midi)
-                    frequencia = nota.valorMIDI + (nota.oitava * DISTANCIA_OITAVA)
-
-                    duracao = bpmToMilliseconds(nota.bpm)
-
-                    midi.addNote(0, 0, frequencia, tempoAtual, duracao, nota.volume)
-                    tempoAtual += duracao
+                # Converter instrumento
+                if isinstance(nota.instrumento, str):
+                    instrumento_midi = Instrumento.tabelaInstrumentos[nota.instrumento]
                 else:
-                    #nota com volume 0 = silencio
-                    duracao = bpmToMilliseconds(nota.bpm)
-                    tempoAtual += duracao
+                    instrumento_midi = nota.instrumento
+                
+                midi.addProgramChange(0, 0, tempoAtual, instrumento_midi)
+                frequencia = nota.valorMIDI + (nota.oitava * DISTANCIA_OITAVA)
+                
+                # Converter duração de segundos para beats
+                duracao_segundos = bpmToMilliseconds(nota.bpm)
+                duracao_beats = duracao_segundos * (self.bpm_atual / 60.0)
+                
+                midi.addNote(0, 0, frequencia, tempoAtual, duracao_beats, nota.volume)
+                tempoAtual += duracao_beats
+            
+        with open(nome_arquivo, "wb") as f:
+            midi.writeFile(f)
+            
+        print("Música foi salva como", nome_arquivo)
 #
 # -----------------------------------------------------------------------------------
 # TESTES
@@ -295,15 +302,16 @@ if __name__ == "__main__":
         gm.salvarParaMidi(descricao)
 
 #Testes
-    roda_teste("AABB", "Notas simples A e B")
-    roda_teste("AO", "O depois de nota (repete A)")
+    roda_teste("AABB", "Notas simples A e B.mid")
+    roda_teste("AO", "O depois de nota (repete A.mid)")
     roda_teste("C+O", "O sem nota anterior (telefone)")
-    roda_teste("C???", "? gerando notas aleatórias entre A–H")
-    roda_teste("C;;C", "Silêncio com ';' entre duas notas")
-    roda_teste("CBPM+CCCBPM-CC++CC---CC", "Aumento/diminuição do bpm + oitavas")
-    roda_teste("CC%CC%CC%CC%CC", "Troca instrumentos aleatoriamente")
-    roda_teste("CCBPM+CC++CC", "Troca instrumentos aleatoriamente")
-    roda_teste("AOOAO", "Troca instrumentos aleatoriamente")
+    roda_teste("C???", "? gerando notas aleatórias entre A–H.mid")
+    roda_teste("C;;C", "Silêncio com ';' entre duas notas.mid")
+    roda_teste("CBPM+CCCBPM-CC++CC---CC", "Aumento/diminuição do bpm + oitavas.mid")
+    roda_teste("CC%CC%CC%CC%CC", "Troca instrumentos aleatoriamente.mid")
+    roda_teste("CCBPM+CC++CC", "Troca instrumentos aleatoriamente.mid")
+    roda_teste("AOOAO", "Troca instrumentos aleatoriamente.mid")
+
 
 
 
