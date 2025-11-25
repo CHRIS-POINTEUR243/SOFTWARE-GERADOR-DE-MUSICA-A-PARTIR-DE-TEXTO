@@ -38,6 +38,7 @@ class Nota:
             'H': 70 
     }
     def __init__(self, caractere, oitava, bpm, volume, instrumento):
+        #pode colocar no init os volumes, oitavas instrumento inicial
         self.caractere = caractere
         # esse valor vem da tabela General MIDI (pygame.midi)
         # onde o dó central é o C4 = 60
@@ -48,7 +49,6 @@ class Nota:
         self.volume = volume
         # 0 a 127
         self.instrumento = instrumento
-        # determinado pela tabela de instrumentos
 
         if caractere in Nota.tabelaNotas:
             self.valorMIDI = Nota.tabelaNotas[caractere]
@@ -303,3 +303,4 @@ if __name__ == "__main__":
     roda_teste("CC%CC%CC%CC%CC", "Troca instrumentos aleatoriamente")
     roda_teste("CCBPM+CC++CC", "Troca instrumentos aleatoriamente")
     roda_teste("AOOAO", "Troca instrumentos aleatoriamente")
+
