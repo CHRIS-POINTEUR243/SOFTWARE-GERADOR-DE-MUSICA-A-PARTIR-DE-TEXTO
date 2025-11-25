@@ -11,7 +11,7 @@ pygame.midi.init()
 port = pygame.midi.get_default_output_id()
 midi_out = pygame.midi.Output(port, 0)
 
-QUANTIDADE_MAXIMA_DE_CARACTERES_FUNCAO = 4
+QUANTIDADE_MAXIMA_DE_CARACTERES_FUNCAO = 5
 DISTANCIA_OITAVA = 12
 OITAVA_DEFAULT = 0
 VOLUME_DEFAULT = 127  # máximo
