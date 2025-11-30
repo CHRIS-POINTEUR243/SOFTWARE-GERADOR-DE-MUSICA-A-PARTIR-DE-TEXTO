@@ -1,9 +1,3 @@
-#TESTE DE CLASSE UI CHAMANDO MUSIC SERVICES
-
-#ESTÁ DANDO ERRO POIS O STREAMLIT NÃO TEM PORTA MIDI, ENTÃO PYGAME.MIDI NÃO FUNCIONA PRA SAIR SOM DIRETO NO STREAMLIT
-#PELO QUE EU LI, TEM QUE TRANSFORMAR O ARQUIVO MIDI PARA WAV OU MP3 E TOCAR NA INTERFACE POR ST.AUDIO()
-#BIBLIOTECAS FLUIDSYNTH, MIDO CONSEGUEM FAZER ISSO, APARENTEMENTE
-
 import streamlit as st
 from class_MusicServices import MusicServices
 from enum_Valores import ValoresInstrumentos
@@ -20,21 +14,33 @@ opcoes_instrumentos = [inst.name for inst in ValoresInstrumentos]
 
 class UI:
     def __init__(self):
-        self.inicializaCabecalho()
-        self.inicializaInterface()
-
-    def inicializaCabecalho(self):
         st.set_page_config(page_title="Gerador de Música", page_icon="🎵")
 
-        # Título central
+        if "screen" not in st.session_state:
+            st.session_state.screen = "tela_input" 
+
+        self.music_services = None
+        self.texto_converter = None
+
+        self.inicializaCabecalho()
+
+        if st.session_state.screen == "tela_input":
+            self.telaGerador()
+        elif st.session_state.screen == "tela_player":
+            self.telaPlayer()
+
+    def inicializaCabecalho(self):
         st.markdown(
             "<h1 style='text-align:center;'>Gerador de Música</h1>",
             unsafe_allow_html=True,
         )
-
         st.write("")
 
-    def inicializaInterface(self):
+    def mudaTela(self,nome_tela):
+        st.session_state.screen = nome_tela
+        st.rerun()
+
+    def telaGerador(self):
         st.write("Transforma texto em música!")
 
         if "volume" not in st.session_state:
@@ -48,31 +54,76 @@ class UI:
 
         with st.form(key="gerar_musica"):
 
-            texto = st.text_input("Insira o texto:", placeholder="Ex: ABRA A GAIOLA DE H ...")
+            placeholder_texto = st.empty()
+            texto_digitado = placeholder_texto.text_input("Insira o texto:",placeholder="Ex: ABRA A GAIOLA DE H ...")
 
             st.write("")
+
             arquivo_texto = st.file_uploader("Ou carregue um arquivo texto:",type=["txt"])
+            conteudo_arquivo = None
+
+            if arquivo_texto is not None:
+                conteudo_arquivo = arquivo_texto.read().decode("utf-8")
+                placeholder_texto.text_input("Insira o texto:",value=conteudo_arquivo)
+                texto_digitado = conteudo_arquivo
 
             self.volume = st.slider("Volume",0,127,127)
-            self.oitava = st.selectbox("Oitava:",opcoes_oitava,OITAVA_DEFAULT)
+            self.oitava = st.selectbox("Oitava:",opcoes_oitava,index=opcoes_oitava.index(OITAVA_DEFAULT))
             self.bpm = st.number_input("Bpm:",10,280,120,10)
             self.instrumento = st.selectbox("Instrumento:",opcoes_instrumentos,index=opcoes_instrumentos.index(VALOR_INSTRUMENTO_DEFAULT))
 
-            submit_button = st.form_submit_button(label="Gerar Música")
-            if submit_button:
-                if texto and arquivo_texto:
+            botao_gerar = st.form_submit_button(label="Gerar Música")
+
+            if botao_gerar:
+                if texto_digitado and arquivo_texto:
                     st.warning("Insira um texto OU carregue um arquivo!")
                     return
                 
-                elif texto and not arquivo_texto:
-                    texto_converter = texto
+                if not texto_digitado:
+                    st.warning("Insira um texto OU carregue um arquivo!")
+                    return
+         
+                self.texto_converter = texto_digitado
 
-                elif arquivo_texto and not texto:
-                    texto_converter = arquivo_texto
+                self.music_services = MusicServices(texto_digitado,self.instrumento,self.oitava,self.volume,self.bpm)
 
-                music_services = MusicServices(texto_converter,INSTRUMENTO_DEFAULT,self.oitava,self.volume,self.bpm)
+                #salva a música no buffer de estado
+                st.session_state.music_services = self.music_services
+
+                if self.music_services.isMusicaPronta:
+                    self.inicializaCabecalho
+                    self.mudaTela("tela_player")
+
+    def telaPlayer(self):
+        st.write("Música gerada!")
+
+        #busca a música do buffer de estado
+        self.music_services = st.session_state.get("music_services", None)
+
+
+        if self.music_services is None:
+            st.warning("Música não encontrada!")
+            return
+        
+        if st.button("Gerar arquivo MIDI"):
+            self.music_services.gerarMidi()
+            st.toast("Arquivo MIDI 'musica_gerada.mid' gerado com sucesso!")
+
+        col1,col2,col3 = st.columns([1,1,1])
+
+        with col1:
+            if st.button("▶️ Play"):        
+                self.music_services.play()
+
+        with col2:
+            if st.button("⏸️ Pause"):
+                pass
+                
+        with col3:
+            if st.button("⏹️ Voltar"):
+                self.mudaTela("tela_input")
+
 
 
 if __name__ == "__main__":
-
     ui = UI()
