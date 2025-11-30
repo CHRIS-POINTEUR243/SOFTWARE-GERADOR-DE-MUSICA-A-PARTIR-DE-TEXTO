@@ -65,7 +65,9 @@ class UI:
                 elif arquivo_texto and not texto:
                     texto_converter = arquivo_texto
 
-                music_services = MusicServices(texto_converter,INSTRUMENTO_DEFAULT,OITAVA_DEFAULT,VOLUME_DEFAULT,BPM_DEFAULT)
+                music_services = MusicServices(texto_converter,INSTRUMENTO_DEFAULT,self.oitava,self.volume,self.bpm)
+
 
 if __name__ == "__main__":
+
     ui = UI()
