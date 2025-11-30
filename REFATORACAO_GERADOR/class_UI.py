@@ -40,6 +40,9 @@ class UI:
         st.session_state.screen = nome_tela
         st.rerun()
 
+    def atualizaTexto(self):
+        pass
+
     def telaGerador(self):
         st.write("Transforma texto em música!")
 
@@ -52,20 +55,21 @@ class UI:
 
         st.write("")
 
+        arquivo_texto = st.file_uploader("Carregue um arquivo texto:",type=["txt"])
+
+        conteudo_arquivo = None
+
+        if arquivo_texto is not None:
+            conteudo_arquivo = arquivo_texto.read().decode("utf-8")
+            st.session_state.input_texto = conteudo_arquivo
+        else:
+            if "texto_digitado" not in st.session_state:
+                st.session_state.input_texto = ""
+
+        texto_digitado = st.text_area("Ou insira um texto:", value=st.session_state.input_texto,height=150,on_change=self.atualizaTexto())
+        st.session_state.input_texto = texto_digitado
+
         with st.form(key="gerar_musica"):
-
-            placeholder_texto = st.empty()
-            texto_digitado = placeholder_texto.text_input("Insira o texto:",placeholder="Ex: ABRA A GAIOLA DE H ...")
-
-            st.write("")
-
-            arquivo_texto = st.file_uploader("Ou carregue um arquivo texto:",type=["txt"])
-            conteudo_arquivo = None
-
-            if arquivo_texto is not None:
-                conteudo_arquivo = arquivo_texto.read().decode("utf-8")
-                placeholder_texto.text_input("Insira o texto:",value=conteudo_arquivo)
-                texto_digitado = conteudo_arquivo
 
             self.volume = st.slider("Volume",0,127,127)
             self.oitava = st.selectbox("Oitava:",opcoes_oitava,index=opcoes_oitava.index(OITAVA_DEFAULT))
@@ -75,11 +79,7 @@ class UI:
             botao_gerar = st.form_submit_button(label="Gerar Música")
 
             if botao_gerar:
-                if texto_digitado and arquivo_texto:
-                    st.warning("Insira um texto OU carregue um arquivo!")
-                    return
-                
-                if not texto_digitado:
+                if not texto_digitado.strip():
                     st.warning("Insira um texto OU carregue um arquivo!")
                     return
          
@@ -99,7 +99,6 @@ class UI:
 
         #busca a música do buffer de estado
         self.music_services = st.session_state.get("music_services", None)
-
 
         if self.music_services is None:
             st.warning("Música não encontrada!")
@@ -123,7 +122,3 @@ class UI:
             if st.button("⏹️ Voltar"):
                 self.mudaTela("tela_input")
 
-
-
-if __name__ == "__main__":
-    ui = UI()
