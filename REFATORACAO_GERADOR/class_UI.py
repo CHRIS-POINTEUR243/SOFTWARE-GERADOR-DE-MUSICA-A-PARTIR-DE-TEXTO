@@ -6,13 +6,17 @@
 
 import streamlit as st
 from class_MusicServices import MusicServices
+from enum_Valores import ValoresInstrumentos
+
 NOTA_DEFAULT = 'C'
 OITAVA_DEFAULT = 0
 VOLUME_DEFAULT = 127  # máximo
 BPM_DEFAULT = 120
 INSTRUMENTO_DEFAULT = 'ACOUSTIC_GRAND_PIANO'
+VALOR_INSTRUMENTO_DEFAULT = ValoresInstrumentos.ACOUSTIC_GRAND_PIANO.name
 
 opcoes_oitava = [-5,-4,-3,-2,-1,0,1,2,3,4,5]
+opcoes_instrumentos = [inst.name for inst in ValoresInstrumentos]
 
 class UI:
     def __init__(self):
@@ -52,6 +56,7 @@ class UI:
             self.volume = st.slider("Volume",0,127,127)
             self.oitava = st.selectbox("Oitava:",opcoes_oitava,OITAVA_DEFAULT)
             self.bpm = st.number_input("Bpm:",10,280,120,10)
+            self.instrumento = st.selectbox("Instrumento:",opcoes_instrumentos,index=opcoes_instrumentos.index(VALOR_INSTRUMENTO_DEFAULT))
 
             submit_button = st.form_submit_button(label="Gerar Música")
             if submit_button:

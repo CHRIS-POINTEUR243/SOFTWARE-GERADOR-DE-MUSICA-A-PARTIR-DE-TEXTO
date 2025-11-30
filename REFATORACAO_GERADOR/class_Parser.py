@@ -2,7 +2,7 @@ from enum_Valores import ValoresNotas,Tokens,MAX_LEN_TOKEN
 
 class Parser:
     def __init__(self,texto):
-        self.texto = texto
+        self.texto = texto.upper()
         self.lista_tokens=[]
         self.lista_tokens = self.textoParaTokens()
     
