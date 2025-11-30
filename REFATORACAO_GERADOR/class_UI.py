@@ -19,6 +19,12 @@ class UI:
         if "screen" not in st.session_state:
             st.session_state.screen = "tela_input" 
 
+        st.session_state.setdefault("input_texto", "")
+        st.session_state.setdefault("volume", 127)
+        st.session_state.setdefault("oitava", 0)
+        st.session_state.setdefault("bpm", 120)
+        st.session_state.setdefault("instrumento","ACOUSTIC_GRAND_PIANO")
+
         self.music_services = None
         self.texto_converter = None
 
@@ -45,29 +51,17 @@ class UI:
 
     def telaGerador(self):
         st.write("Transforma texto em música!")
-
-        if "volume" not in st.session_state:
-            st.session_state.volume = VOLUME_DEFAULT
-        if "oitava" not in st.session_state:
-            st.session_state.oitava = OITAVA_DEFAULT
-        if "bpm" not in st.session_state:
-            st.session_state.bpm = BPM_DEFAULT
-
         st.write("")
 
         arquivo_texto = st.file_uploader("Carregue um arquivo texto:",type=["txt"])
 
-        conteudo_arquivo = None
-
         if arquivo_texto is not None:
-            conteudo_arquivo = arquivo_texto.read().decode("utf-8")
-            st.session_state.input_texto = conteudo_arquivo
+            st.session_state.input_texto = arquivo_texto.read().decode("utf-8")
         else:
             if "texto_digitado" not in st.session_state:
                 st.session_state.input_texto = ""
 
         texto_digitado = st.text_area("Ou insira um texto:", value=st.session_state.input_texto,height=150,on_change=self.atualizaTexto())
-        st.session_state.input_texto = texto_digitado
 
         with st.form(key="gerar_musica"):
 

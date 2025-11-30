@@ -19,11 +19,11 @@ class Player:
     def play(self):
         for nota in self.musica:
             if nota.valorMIDI is not None:
-                notaMIDI = nota.valorMIDI + (DISTANCIA_OITAVA * nota.oitava)
+                #notaMIDI = nota.valorMIDI + (DISTANCIA_OITAVA * nota.oitava)
                 valor_instrumento = ValoresInstrumentos[nota.instrumento].value
                 midi_out.set_instrument(valor_instrumento)
-                midi_out.note_on(notaMIDI,nota.volume)
+                midi_out.note_on(nota.valorMIDI,nota.volume)
                 time.sleep(Utilidades.bpmParaMilisegundos(nota.bpm))
-                midi_out.note_off(notaMIDI,nota.volume)
+                midi_out.note_off(nota.valorMIDI,nota.volume)
             else:
                 pass

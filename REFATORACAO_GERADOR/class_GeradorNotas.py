@@ -24,7 +24,7 @@ class GeradorNotas:
             Tokens.LETRA_I: self.notaOuTelefone,
             Tokens.LETRA_U: self.notaOuTelefone,
             Tokens.INTERROGACAO: self.notaAleatoria,
-            Tokens.PORCENTAGEM: self.trocaInstrumentoAleatorio,
+            Tokens.NOVA_LINHA: self.trocaInstrumentoAleatorio,
             Tokens.BPM_MAIS: self.aumentaBPM,
             Tokens.BPM_MENOS: self.diminuiBPM,
             Tokens.PONTO_VIRGULA: self.silencio,
