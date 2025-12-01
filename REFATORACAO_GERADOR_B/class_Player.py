@@ -1,3 +1,5 @@
+#RECEBE LISTA DE NOTAS vinda de GeradorNotas e RETORNA SONS
+
 import pygame
 import pygame.midi
 import time
@@ -26,5 +28,3 @@ class Player:
                 midi_out.note_off(nota.valorMIDI,nota.volume)
             else:
                 pass
-        
-        #player não mais cuida do cálculo de valorMIDI + oitava

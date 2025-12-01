@@ -1,3 +1,5 @@
+#RECEBE LISTA DE TOKENS vinda de Parser e RETORNA LISTA DE NOTAS
+
 import random
 from midiutil import MIDIFile
 
@@ -27,13 +29,13 @@ class GeradorNotas:
             Tokens.BPM_MAIS: self.aumentaBPM,
             Tokens.BPM_MENOS: self.diminuiBPM,
             Tokens.PONTO_VIRGULA: self.silencio,
-            Tokens.NOVA_LINHA: self.trocaInstrumentoAleatorio,  # adicionei ENTER troca de instrumento
+            Tokens.NOVA_LINHA: self.trocaInstrumentoAleatoriamente,  
         }
+        #Define o mapeamento de tokens para métodos de gerador
 
         self.tokensParaNotas()	
 
     def tokensParaNotas(self):
-        # percorre a lista de tokens já processados
         self.idxChar = 0   
         for token in self.lista_tokens:
             nota = None
@@ -61,8 +63,9 @@ class GeradorNotas:
 
             self.idxChar += 1
 
-        self.isMusicaPronta = True
         self.gerarMidi()
+        self.isMusicaPronta = True
+    #Percorre a lista de tokens já processados por Parser
         
     def dobraVolume(self):
         volume_dobrado = self.volume_atual * 2
@@ -77,7 +80,7 @@ class GeradorNotas:
     def diminuiOitava(self):
         self.oitava_atual -= 1
 
-    def trocaInstrumentoAleatorio(self):
+    def trocaInstrumentoAleatoriamente(self):
         novo_instrumento = random.choice(list(ValoresInstrumentos))
         while novo_instrumento == self.instrumento_atual:
             novo_instrumento = random.choice(list(ValoresInstrumentos))
@@ -117,7 +120,7 @@ class GeradorNotas:
             return
 
         ant = self.lista_tokens[idx - 1]  
-   
+
         if ant in ValoresNotas.__members__:
             nota_repetida = self.repeteNota()
             if nota_repetida:
@@ -134,7 +137,7 @@ class GeradorNotas:
             self.bpm_atual -= UNIDADE_BPM
         else:
             pass
-            #deixa bpm igual
+        #Deixa igual caso contrário
 
     def silencio(self):
         volume_zerado = 0
@@ -149,29 +152,33 @@ class GeradorNotas:
     def gerarMidi(self, nome_arquivo="musica_gerada.mid"):
         midi = MIDIFile(1)
         midi.addTrackName(0, 0, "Música Gerada")
-        midi.addTempo(0, 0, self.bpm_atual)
-            
+        midi.addTempo(0, 0, self.bpm_atual)     
         tempoAtual = 0
             
         for nota in self.lista_notas:
             if nota.valorMIDI is not None:
-                # Converter instrumento
                 if isinstance(nota.instrumento, str):
                     instrumento_midi = ValoresInstrumentos[nota.instrumento].value
                 else:
                     instrumento_midi = nota.instrumento
+                #Converte instrumento
                 
                 midi.addProgramChange(0, 0, tempoAtual, instrumento_midi)
                 frequencia = nota.valorMIDI + (nota.oitava * DISTANCIA_OITAVA)
                 
-                # Converter duração de segundos para beats
                 duracao_segundos = Utilidades.bpmParaMilisegundos(nota.bpm)
                 duracao_beats = duracao_segundos * (self.bpm_atual / 60.0)
+                #Converte duração de segundos para batidas
                 
                 midi.addNote(0, 0, frequencia, tempoAtual, duracao_beats, nota.volume)
                 tempoAtual += duracao_beats
+        try:    
+            with open(nome_arquivo, "wb") as f:
+                midi.writeFile(f)
+            print(f"Arquivo MIDI '{nome_arquivo}' gerado com sucesso.")
+            return True
+        except Exception as erro:
+            print(f"Erro ao gerar arquivo '{nome_arquivo}': ", erro)
+            return False
+        #Retorna True se o arquivo foi gerado com sucesso
             
-        with open(nome_arquivo, "wb") as f:
-            midi.writeFile(f)
-            
-        print("Música foi salva como", nome_arquivo)

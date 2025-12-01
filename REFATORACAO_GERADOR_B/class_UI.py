@@ -1,34 +1,41 @@
+#Interface de usuário
+#Aciona music services de acordo com input do usuário
+
 import streamlit as st
 from class_MusicServices import MusicServices
 from enum_Valores import ValoresInstrumentos
-from class_Utilidades import Utilidades  # ADIÇÃO: para salvar o texto em arquivo .txt
-import base64  # ADIÇÃO: para usar base64 na imagem de fundo
-import os # adição para conferir funcionamento da imagems
+import base64  
+import os 
 
-NOTA_DEFAULT = 'C'
 OITAVA_DEFAULT = 0
-VOLUME_DEFAULT = 127  # máximo
+VOLUME_DEFAULT = 127  
 BPM_DEFAULT = 120
-INSTRUMENTO_DEFAULT = 'ACOUSTIC_GRAND_PIANO'
-VALOR_INSTRUMENTO_DEFAULT = ValoresInstrumentos.ACOUSTIC_GRAND_PIANO.name
+INSTRUMENTO_DEFAULT = ValoresInstrumentos.ACOUSTIC_GRAND_PIANO.name
+#Valores padrões para os parâmetros que o usuário pode escolher na interface
 
 opcoes_oitava = [-5,-4,-3,-2,-1,0,1,2,3,4,5]
+#Tomando dó central = C4 como oitava 0
 opcoes_instrumentos = [inst.name for inst in ValoresInstrumentos]
+#Alterável em ValoresInstrumentos
 
 class UI:
     def __init__(self):
+        self.music_services = None
+        self.texto_converter = None
+
         st.set_page_config(page_title="Gerador de Música", page_icon="🎵")
+        #Nome na aba da interface
 
-        diretorio = "foto.jpg"
-        if not os.path.exists(diretorio):
-            st.error(f"Arquivo não encontrado: {diretorio}")
+        self.inicializaImagem()
+        self.inicializaCabecalho()
+
+    def inicializaImagem(self):
+        path_imagem = "foto.jpg"
+        if not os.path.exists(path_imagem):
+            st.error(f"Arquivo não encontrado: {path_imagem}")
             return
-
-        # ADIÇÃO: imagem de fundo direta, sem criar função
-        with open("foto.jpg", "rb") as image:  # troque 'foto.jpg' pelo nome da tua foto
+        with open("foto.jpg", "rb") as image:  
             encoded = base64.b64encode(image.read()).decode()
-
-
 
         css = f"""
         <style>
@@ -41,20 +48,7 @@ class UI:
         </style>
         """
         st.markdown(css, unsafe_allow_html=True)
-        # FIM DA ADIÇÃO
-        
-        if "screen" not in st.session_state:
-            st.session_state.screen = "tela_input" 
-
-        self.music_services = None
-        self.texto_converter = None
-
-        self.inicializaCabecalho()
-
-        if st.session_state.screen == "tela_input":
-            self.telaGerador()
-        elif st.session_state.screen == "tela_player":
-            self.telaPlayer()
+        #Tratamento da imagem no fundo da interface
 
     def inicializaCabecalho(self):
         st.markdown(
@@ -63,7 +57,20 @@ class UI:
         )
         st.write("")
 
+        if "screen" not in st.session_state:
+            st.session_state.screen = "tela_input" 
+        if st.session_state.screen == "tela_input":
+            self.telaGerador()
+        elif st.session_state.screen == "tela_player":
+            self.telaPlayer()
+
     def mudaTela(self,nome_tela):
+        if nome_tela == "tela_input":
+            st.session_state.tela_player_carregada = False
+            st.session_state.midi_try = False
+            st.session_state.midi_sucesso = None
+            st.session_state.texto_digitado = self.texto_converter
+            #Reseta lógica de download do arquivo MIDI e mantém o texto previamente inserido
         st.session_state.screen = nome_tela
         st.rerun()
 
@@ -72,24 +79,14 @@ class UI:
 
     def telaGerador(self):
         st.write("Transforma texto em música!")
-
-        if "volume" not in st.session_state:
-            st.session_state.volume = VOLUME_DEFAULT
-        if "oitava" not in st.session_state:
-            st.session_state.oitava = OITAVA_DEFAULT
-        if "bpm" not in st.session_state:
-            st.session_state.bpm = BPM_DEFAULT
-
         st.write("")
 
         arquivo_texto = st.file_uploader("Carregue um arquivo texto:",type=["txt"])
-
         conteudo_arquivo = None
 
         if arquivo_texto is not None:
             conteudo_arquivo = arquivo_texto.read().decode("utf-8")
             st.session_state.input_texto = conteudo_arquivo
-            # ADIÇÃO: guardar o nome do arquivo enviado para usar ao salvar
             st.session_state.nome_arquivo_texto = arquivo_texto.name
         else:
             if "texto_digitado" not in st.session_state:
@@ -98,72 +95,74 @@ class UI:
         texto_digitado = st.text_area("Ou insira um texto:", value=st.session_state.input_texto,height=150,on_change=self.atualizaTexto())
         st.session_state.input_texto = texto_digitado
 
-        ### eu anicinei botão para SALVAR o texto editado em um arquivo .txt
-        st.write("")  
-        if st.button("💾 Salvar texto em arquivo"):
-            nome_arquivo = getattr(st.session_state, "nome_arquivo_texto", None)
-            if not nome_arquivo:
-                nome_arquivo = "texto_editado.txt"
-            # aqui ta sendo a chamada salvartxt.
-            sucesso = Utilidades.salvaArquivoTxt(
-                nome_arquivo,
-                st.session_state.input_texto
-            )
+        #Recebe o texto via arquivo ou digitado no campo texto
+        #Arquivo tem prioridade, se houver texto já digitado no momento em que um arquivo for carregado, será sobrescrito.
 
-            if sucesso:
-                st.success(f"Texto salvo em '{nome_arquivo}'.")
-            else:
-                st.error("Não foi possível salvar o arquivo. Veja o console/terminal para detalhes.")
+        st.write("")  
+        if st.button("Salvar texto em arquivo",icon=":material/file_save:"):
+            if texto_digitado is not None:
+                st.toast(f"Arquivo texto salvo com sucesso!",icon=":material/thumb_up:")
+
+                st.download_button(label="Download TXT",data=texto_digitado,file_name="novo_texto.txt",on_click="ignore",type="primary",icon=":material/download:")
+            else: 
+                st.toast("Digite alguma coisa!",icon="🚨")
 
         with st.form(key="gerar_musica"):
-
             self.volume = st.slider("Volume",0,127,127)
             self.oitava = st.selectbox("Oitava:",opcoes_oitava,index=opcoes_oitava.index(OITAVA_DEFAULT))
             self.bpm = st.number_input("Bpm:",10,280,120,10)
-            self.instrumento = st.selectbox("Instrumento:",opcoes_instrumentos,index=opcoes_instrumentos.index(VALOR_INSTRUMENTO_DEFAULT))
+            self.instrumento = st.selectbox("Instrumento:",opcoes_instrumentos,index=opcoes_instrumentos.index(INSTRUMENTO_DEFAULT))
+            #Guarda os parametros deinidos 
 
             botao_gerar = st.form_submit_button(label="Gerar Música")
 
             if botao_gerar:
                 if not texto_digitado.strip():
-                    st.warning("Insira um texto OU carregue um arquivo!")
+                    st.toast("Insira um texto ou carregue um arquivo!",icon="🚨")
                     return
          
                 self.texto_converter = texto_digitado
-
                 self.music_services = MusicServices(texto_digitado,self.instrumento,self.oitava,self.volume,self.bpm)
-
-                #salva a música no buffer de estado
                 st.session_state.music_services = self.music_services
+                #Aciona music services para gerar a música a partir do texto e salva no buffer de estado
 
                 if self.music_services.isMusicaPronta:
                     self.inicializaCabecalho
                     self.mudaTela("tela_player")
+                #Troca para tela de player
 
     def telaPlayer(self):
         st.write("Música gerada!")
 
-        #busca a música do buffer de estado
         self.music_services = st.session_state.get("music_services", None)
-
         if self.music_services is None:
             st.warning("Música não encontrada!")
             return
+        #Busca a música do buffer de estado
         
+        if "tela_player_carregada" not in st.session_state or not st.session_state.tela_player_carregada:
+            st.session_state.midi_try = False
+            st.session_state.midi_sucesso = None
+            st.session_state.tela_player_carregada = True
+
         if st.button("Gerar arquivo MIDI"):
-            self.music_services.gerarMidi()
-            st.toast("Arquivo MIDI 'musica_gerada.mid' gerado com sucesso!")
+            st.session_state.midi_try = True
+            st.session_state.midi_sucesso = self.music_services.gerarMidi()
 
-        col1,col2,col3 = st.columns([1,1,1])
-
+        if st.session_state.midi_try:    
+            if st.session_state.midi_sucesso:
+                st.toast("Arquivo MIDI gerado com sucesso!",icon=":material/thumb_up:")
+                with open("musica_gerada.mid", "rb") as f:
+                    st.download_button(label="Download MIDI",data=f,file_name="musica_gerada.mid",mime="audio/midi",on_click="ignore",type="primary",icon=":material/download:",)
+            else:
+                st.error("Não foi possível gerar o arquivo.")
+        #Se o botão de gerar midi foi acionado, permite o download do arquivo
+        
+        col1,col2 = st.columns([1,1])
         with col1:
-            if st.button("▶️ Play"):        
+            if st.button("Play",icon=":material/play_circle:"):        
                 self.music_services.play()
-
         with col2:
-            if st.button("⏸️ Pause"):
-                pass
-                
-        with col3:
-            if st.button("⏹️ Voltar"):
+            if st.button("Voltar",icon=":material/logout:"):
                 self.mudaTela("tela_input")
+        #Botões de play e voltar 
