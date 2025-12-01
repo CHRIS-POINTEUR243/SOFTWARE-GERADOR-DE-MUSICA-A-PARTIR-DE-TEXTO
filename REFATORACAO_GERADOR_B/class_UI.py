@@ -64,22 +64,6 @@ class UI:
         elif st.session_state.screen == "tela_player":
             self.telaPlayer()
 
-    #def mudaTela(self,nome_tela):
-    #    st.session_state.oitava = getattr(self, "oitava", OITAVA_DEFAULT)
-    #    st.session_state.bpm = getattr(self, "bpm", BPM_DEFAULT)
-    #    st.session_state.instrumento = getattr(self, "instrumento", INSTRUMENTO_DEFAULT)
-    #    st.session_state.volume = getattr(self, "volume", VOLUME_DEFAULT)
-    #    st.session_state.texto_digitado = getattr(self, "texto_converter", "")
-#
-    #    if nome_tela == "tela_input":
-    #        st.session_state.tela_player_carregada = False
-    #        st.session_state.midi_try = False
-    #        st.session_state.midi_sucesso = None
-    #        st.session_state.texto_digitado = self.texto_converter
-    #        #Reseta lógica de download do arquivo MIDI e mantém o texto previamente inserido
-    #    st.session_state.screen = nome_tela
-    #    st.rerun()
-
     def mudaTela(self, nome_tela):
     # Salva parâmetros atuais antes de mudar de tela
         if hasattr(self, "volume"):
@@ -92,13 +76,13 @@ class UI:
             st.session_state.instrumento = self.instrumento
         if hasattr(self, "texto_converter"):
             st.session_state.texto_digitado = self.texto_converter
-    
+
         if nome_tela == "tela_input":
             # Reseta lógica do MIDI para voltar da tela player
             st.session_state.tela_player_carregada = False
             st.session_state.midi_try = False
             st.session_state.midi_sucesso = None
-    
+
         st.session_state.screen = nome_tela
         st.rerun()
 
