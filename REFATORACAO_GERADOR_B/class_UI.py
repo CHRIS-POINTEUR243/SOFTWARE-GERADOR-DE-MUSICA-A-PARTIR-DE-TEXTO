@@ -53,7 +53,7 @@ class UI:
 
     def inicializaCabecalho(self):
         st.markdown(
-            "<h1 style='text-align:center;'>Gerador de Música</h1>",
+            "<h1 style='text-align:center'>Gerador de Música</h1>",
             unsafe_allow_html=True,
         )
         st.write("")
@@ -95,14 +95,16 @@ class UI:
         with container:
             st.subheader("Transforma texto em música!")
             st.write("")
-
             arquivo_texto = st.file_uploader("Carregue um arquivo texto:",type=["txt"])
             conteudo_arquivo = None
 
             if arquivo_texto is not None:
-                conteudo_arquivo = arquivo_texto.read().decode("utf-8")
-                st.session_state.input_texto = conteudo_arquivo
-                st.session_state.nome_arquivo_texto = arquivo_texto.name
+                if arquivo_texto.size > 0:
+                    conteudo_arquivo = arquivo_texto.read().decode("utf-8")
+                    st.session_state.input_texto = conteudo_arquivo
+                    st.session_state.nome_arquivo_texto = arquivo_texto.name
+                else:
+                    st.toast("Arquivo vazio ou corrompido!", icon="🚨") 
             else:
                 if "texto_digitado" not in st.session_state:
                     st.session_state.input_texto = ""
@@ -114,6 +116,7 @@ class UI:
             #Arquivo tem prioridade, se houver texto já digitado no momento em que um arquivo for carregado, será sobrescrito.
 
             st.write("")  
+            st.markdown('<style>div.stDownloadButton > button {background-color: #9370DB !important; border: 2px solid #9370DB !important;}</style>', unsafe_allow_html=True)
             if st.button("Salvar texto em arquivo",icon=":material/file_save:"):
                 if texto_digitado is not None:
                     st.toast(f"Arquivo texto salvo com sucesso!",icon=":material/thumb_up:")
@@ -123,6 +126,8 @@ class UI:
                     st.toast("Digite alguma coisa!",icon="🚨")
 
             with st.form(key="gerar_musica"):
+                
+                  
                 self.volume = st.slider("Volume",0,127,value=st.session_state.get("volume",VOLUME_DEFAULT))
                 self.oitava = st.selectbox("Oitava",opcoes_oitava,index=opcoes_oitava.index(st.session_state.get("oitava",OITAVA_DEFAULT)))
                 self.bpm = st.number_input("Bpm",10,280,value=st.session_state.get("bpm",BPM_DEFAULT),step=10)
@@ -150,6 +155,7 @@ class UI:
         container = st.container()
         with container:
             st.write("### "+ "Música gerada!")
+            
 
             self.music_services = st.session_state.get("music_services", None)
             if self.music_services is None:
@@ -165,7 +171,8 @@ class UI:
             if st.button("Gerar arquivo MIDI"):
                 st.session_state.midi_try = True
                 st.session_state.midi_sucesso = self.music_services.gerarMidi()
-
+            
+            st.markdown('<style>div.stDownloadButton > button {background-color: #9370DB !important; border: 2px solid #9370DB !important;}</style>', unsafe_allow_html=True)
             if st.session_state.midi_try:    
                 if st.session_state.midi_sucesso:
                     st.toast("Arquivo MIDI gerado com sucesso!",icon=":material/thumb_up:")
@@ -183,4 +190,3 @@ class UI:
                 if st.button("Voltar",icon=":material/logout:"):
                     self.mudaTela("tela_input")
             #Botões de play e voltar 
-
