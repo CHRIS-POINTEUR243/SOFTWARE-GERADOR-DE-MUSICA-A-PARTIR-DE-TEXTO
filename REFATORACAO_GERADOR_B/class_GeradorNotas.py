@@ -63,7 +63,6 @@ class GeradorNotas:
 
             self.idxChar += 1
 
-        self.gerarMidi()
         self.isMusicaPronta = True
     #Percorre a lista de tokens já processados por Parser
         

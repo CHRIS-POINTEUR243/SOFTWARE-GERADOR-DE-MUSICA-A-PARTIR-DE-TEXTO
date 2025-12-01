@@ -30,11 +30,11 @@ class UI:
         self.inicializaCabecalho()
 
     def inicializaImagem(self):
-        path_imagem = "foto.jpg"
+        path_imagem = "fundo_roxo.jpg"
         if not os.path.exists(path_imagem):
             st.error(f"Arquivo não encontrado: {path_imagem}")
             return
-        with open("foto.jpg", "rb") as image:  
+        with open("fundo_roxo.jpg", "rb") as image:  
             encoded = base64.b64encode(image.read()).decode()
 
         css = f"""
@@ -48,6 +48,7 @@ class UI:
         </style>
         """
         st.markdown(css, unsafe_allow_html=True)
+
         #Tratamento da imagem no fundo da interface
 
     def inicializaCabecalho(self):
@@ -86,96 +87,100 @@ class UI:
         st.session_state.screen = nome_tela
         st.rerun()
 
-
     def atualizaTexto(self):
         pass
 
     def telaGerador(self):
-        st.write("Transforma texto em música!")
-        st.write("")
+        container = st.container()
+        with container:
+            st.subheader("Transforma texto em música!")
+            st.write("")
 
-        arquivo_texto = st.file_uploader("Carregue um arquivo texto:",type=["txt"])
-        conteudo_arquivo = None
+            arquivo_texto = st.file_uploader("Carregue um arquivo texto:",type=["txt"])
+            conteudo_arquivo = None
 
-        if arquivo_texto is not None:
-            conteudo_arquivo = arquivo_texto.read().decode("utf-8")
-            st.session_state.input_texto = conteudo_arquivo
-            st.session_state.nome_arquivo_texto = arquivo_texto.name
-        else:
-            if "texto_digitado" not in st.session_state:
-                st.session_state.input_texto = ""
+            if arquivo_texto is not None:
+                conteudo_arquivo = arquivo_texto.read().decode("utf-8")
+                st.session_state.input_texto = conteudo_arquivo
+                st.session_state.nome_arquivo_texto = arquivo_texto.name
+            else:
+                if "texto_digitado" not in st.session_state:
+                    st.session_state.input_texto = ""
 
-        texto_digitado = st.text_area("Ou insira um texto:", value=st.session_state.input_texto,height=150,on_change=self.atualizaTexto())
-        st.session_state.input_texto = texto_digitado
+            texto_digitado = st.text_area("Ou insira um texto:", value=st.session_state.input_texto,height=150,on_change=self.atualizaTexto())
+            st.session_state.input_texto = texto_digitado
 
-        #Recebe o texto via arquivo ou digitado no campo texto
-        #Arquivo tem prioridade, se houver texto já digitado no momento em que um arquivo for carregado, será sobrescrito.
+            #Recebe o texto via arquivo ou digitado no campo texto
+            #Arquivo tem prioridade, se houver texto já digitado no momento em que um arquivo for carregado, será sobrescrito.
 
-        st.write("")  
-        if st.button("Salvar texto em arquivo",icon=":material/file_save:"):
-            if texto_digitado is not None:
-                st.toast(f"Arquivo texto salvo com sucesso!",icon=":material/thumb_up:")
+            st.write("")  
+            if st.button("Salvar texto em arquivo",icon=":material/file_save:"):
+                if texto_digitado is not None:
+                    st.toast(f"Arquivo texto salvo com sucesso!",icon=":material/thumb_up:")
 
-                st.download_button(label="Download TXT",data=texto_digitado,file_name="novo_texto.txt",on_click="ignore",type="primary",icon=":material/download:")
-            else: 
-                st.toast("Digite alguma coisa!",icon="🚨")
+                    st.download_button(label="Download TXT",data=texto_digitado,file_name="novo_texto.txt",on_click="ignore",type="primary",icon=":material/download:")
+                else: 
+                    st.toast("Digite alguma coisa!",icon="🚨")
 
-        with st.form(key="gerar_musica"):
-            self.volume = st.slider("Volume",0,127,value=st.session_state.get("volume",VOLUME_DEFAULT))
-            self.oitava = st.selectbox("Oitava:",opcoes_oitava,index=opcoes_oitava.index(st.session_state.get("oitava",OITAVA_DEFAULT)))
-            self.bpm = st.number_input("Bpm:",10,280,value=st.session_state.get("bpm",BPM_DEFAULT),step=10)
-            self.instrumento = st.selectbox("Instrumento:",opcoes_instrumentos,index=opcoes_instrumentos.index(st.session_state.get("instrumento",INSTRUMENTO_DEFAULT)))
-            #Guarda os parametros deinidos 
+            with st.form(key="gerar_musica"):
+                self.volume = st.slider("Volume",0,127,value=st.session_state.get("volume",VOLUME_DEFAULT))
+                self.oitava = st.selectbox("Oitava",opcoes_oitava,index=opcoes_oitava.index(st.session_state.get("oitava",OITAVA_DEFAULT)))
+                self.bpm = st.number_input("Bpm",10,280,value=st.session_state.get("bpm",BPM_DEFAULT),step=10)
+                self.instrumento = st.selectbox("Instrumento",opcoes_instrumentos,index=opcoes_instrumentos.index(st.session_state.get("instrumento",INSTRUMENTO_DEFAULT)))
+                #Guarda os parametros deinidos 
 
-            botao_gerar = st.form_submit_button(label="Gerar Música")
+                botao_gerar = st.form_submit_button(label="Gerar Música")
 
-            if botao_gerar:
-                if not texto_digitado.strip():
-                    st.toast("Insira um texto ou carregue um arquivo!",icon="🚨")
-                    return
-         
-                self.texto_converter = texto_digitado
-                self.music_services = MusicServices(texto_digitado,self.instrumento,self.oitava,self.volume,self.bpm)
-                st.session_state.music_services = self.music_services
-                #Aciona music services para gerar a música a partir do texto e salva no buffer de estado
+                if botao_gerar:
+                    if not texto_digitado.strip():
+                        st.toast("Insira um texto ou carregue um arquivo!",icon="🚨")
+                        return
 
-                if self.music_services.isMusicaPronta:
-                    self.inicializaCabecalho
-                    self.mudaTela("tela_player")
-                #Troca para tela de player
+                    self.texto_converter = texto_digitado
+                    self.music_services = MusicServices(texto_digitado,self.instrumento,self.oitava,self.volume,self.bpm)
+                    st.session_state.music_services = self.music_services
+                    #Aciona music services para gerar a música a partir do texto e salva no buffer de estado
+
+                    if self.music_services.isMusicaPronta:
+                        self.inicializaCabecalho
+                        self.mudaTela("tela_player")
+                    #Troca para tela de player
 
     def telaPlayer(self):
-        st.write("Música gerada!")
+        container = st.container()
+        with container:
+            st.write("### "+ "Música gerada!")
 
-        self.music_services = st.session_state.get("music_services", None)
-        if self.music_services is None:
-            st.warning("Música não encontrada!")
-            return
-        #Busca a música do buffer de estado
-        
-        if "tela_player_carregada" not in st.session_state or not st.session_state.tela_player_carregada:
-            st.session_state.midi_try = False
-            st.session_state.midi_sucesso = None
-            st.session_state.tela_player_carregada = True
+            self.music_services = st.session_state.get("music_services", None)
+            if self.music_services is None:
+                st.warning("Música não encontrada!")
+                return
+            #Busca a música do buffer de estado
 
-        if st.button("Gerar arquivo MIDI"):
-            st.session_state.midi_try = True
-            st.session_state.midi_sucesso = self.music_services.gerarMidi()
+            if "tela_player_carregada" not in st.session_state or not st.session_state.tela_player_carregada:
+                st.session_state.midi_try = False
+                st.session_state.midi_sucesso = None
+                st.session_state.tela_player_carregada = True
 
-        if st.session_state.midi_try:    
-            if st.session_state.midi_sucesso:
-                st.toast("Arquivo MIDI gerado com sucesso!",icon=":material/thumb_up:")
-                with open("musica_gerada.mid", "rb") as f:
-                    st.download_button(label="Download MIDI",data=f,file_name="musica_gerada.mid",mime="audio/midi",on_click="ignore",type="primary",icon=":material/download:",)
-            else:
-                st.error("Não foi possível gerar o arquivo.")
-        #Se o botão de gerar midi foi acionado, permite o download do arquivo
-        
-        col1,col2 = st.columns([1,1])
-        with col1:
-            if st.button("Play",icon=":material/play_circle:"):        
-                self.music_services.play()
-        with col2:
-            if st.button("Voltar",icon=":material/logout:"):
-                self.mudaTela("tela_input")
-        #Botões de play e voltar 
+            if st.button("Gerar arquivo MIDI"):
+                st.session_state.midi_try = True
+                st.session_state.midi_sucesso = self.music_services.gerarMidi()
+
+            if st.session_state.midi_try:    
+                if st.session_state.midi_sucesso:
+                    st.toast("Arquivo MIDI gerado com sucesso!",icon=":material/thumb_up:")
+                    with open("musica_gerada.mid", "rb") as f:
+                        st.download_button(label="Download MIDI",data=f,file_name="musica_gerada.mid",mime="audio/midi",on_click="ignore",type="primary",icon=":material/download:",)
+                else:
+                    st.error("Não foi possível gerar o arquivo.")
+            #Se o botão de gerar midi foi acionado, permite o download do arquivo
+
+            col1,col2 = st.columns([1,1])
+            with col1:
+                if st.button("Play",icon=":material/play_circle:"):        
+                    self.music_services.play()
+            with col2:
+                if st.button("Voltar",icon=":material/logout:"):
+                    self.mudaTela("tela_input")
+            #Botões de play e voltar 
+
