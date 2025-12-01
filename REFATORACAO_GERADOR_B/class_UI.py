@@ -121,13 +121,9 @@ class UI:
                 st.toast("Digite alguma coisa!",icon="🚨")
 
         with st.form(key="gerar_musica"):
-            #self.volume = st.slider("Volume",0,127,127)
             self.volume = st.slider("Volume",0,127,value=st.session_state.get("volume",VOLUME_DEFAULT))
-            #self.oitava = st.selectbox("Oitava:",opcoes_oitava,index=opcoes_oitava.index(OITAVA_DEFAULT))
             self.oitava = st.selectbox("Oitava:",opcoes_oitava,index=opcoes_oitava.index(st.session_state.get("oitava",OITAVA_DEFAULT)))
-            #self.bpm = st.number_input("Bpm:",10,280,120,10)
             self.bpm = st.number_input("Bpm:",10,280,value=st.session_state.get("bpm",BPM_DEFAULT),step=10)
-            #self.instrumento = st.selectbox("Instrumento:",opcoes_instrumentos,index=opcoes_instrumentos.index(INSTRUMENTO_DEFAULT))
             self.instrumento = st.selectbox("Instrumento:",opcoes_instrumentos,index=opcoes_instrumentos.index(st.session_state.get("instrumento",INSTRUMENTO_DEFAULT)))
             #Guarda os parametros deinidos 
 
