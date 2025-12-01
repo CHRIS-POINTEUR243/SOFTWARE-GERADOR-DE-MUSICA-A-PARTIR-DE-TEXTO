@@ -26,7 +26,7 @@ class UI:
         st.set_page_config(page_title="Gerador de Música", page_icon="🎵")
         #Nome na aba da interface
 
-        self.inicializaImagem()
+        #self.inicializaImagem()
         self.inicializaCabecalho()
 
     def inicializaImagem(self):
@@ -116,7 +116,6 @@ class UI:
             #Arquivo tem prioridade, se houver texto já digitado no momento em que um arquivo for carregado, será sobrescrito.
 
             st.write("")  
-            st.markdown('<style>div.stDownloadButton > button {background-color: #9370DB !important; border: 2px solid #9370DB !important;}</style>', unsafe_allow_html=True)
             if st.button("Salvar texto em arquivo",icon=":material/file_save:"):
                 if texto_digitado is not None:
                     st.toast(f"Arquivo texto salvo com sucesso!",icon=":material/thumb_up:")
@@ -172,7 +171,6 @@ class UI:
                 st.session_state.midi_try = True
                 st.session_state.midi_sucesso = self.music_services.gerarMidi()
             
-            st.markdown('<style>div.stDownloadButton > button {background-color: #9370DB !important; border: 2px solid #9370DB !important;}</style>', unsafe_allow_html=True)
             if st.session_state.midi_try:    
                 if st.session_state.midi_sucesso:
                     st.toast("Arquivo MIDI gerado com sucesso!",icon=":material/thumb_up:")
