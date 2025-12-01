@@ -45,7 +45,6 @@ class Tokens(Enum):
     LETRA_I = 'I'
     LETRA_U = 'U'
     INTERROGACAO = '?'
-    PORCENTAGEM = '%'
     BPM_MAIS = 'BPM+'
     BPM_MENOS = 'BPM-'
     PONTO_VIRGULA = ';'

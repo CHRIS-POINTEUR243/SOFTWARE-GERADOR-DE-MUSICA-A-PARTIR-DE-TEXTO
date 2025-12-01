@@ -7,7 +7,7 @@ class Utilidades:
     def bpmParaMilisegundos(bpm):
         tempo = 1 / (bpm / MINUTO)
         return tempo
-    # não faz nada tirei // 
+    #usado em player e em geradornotas
         
     # Adicinei: função para SALVAR texto em um arquivo .txt
     def salvaArquivoTxt(nome_arquivo, conteudo):

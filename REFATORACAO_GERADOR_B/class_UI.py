@@ -3,6 +3,7 @@ from class_MusicServices import MusicServices
 from enum_Valores import ValoresInstrumentos
 from class_Utilidades import Utilidades  # ADIÇÃO: para salvar o texto em arquivo .txt
 import base64  # ADIÇÃO: para usar base64 na imagem de fundo
+import os # adição para conferir funcionamento da imagems
 
 NOTA_DEFAULT = 'C'
 OITAVA_DEFAULT = 0
@@ -18,9 +19,16 @@ class UI:
     def __init__(self):
         st.set_page_config(page_title="Gerador de Música", page_icon="🎵")
 
+        diretorio = "foto.jpg"
+        if not os.path.exists(diretorio):
+            st.error(f"Arquivo não encontrado: {diretorio}")
+            return
+
         # ADIÇÃO: imagem de fundo direta, sem criar função
         with open("foto.jpg", "rb") as image:  # troque 'foto.jpg' pelo nome da tua foto
             encoded = base64.b64encode(image.read()).decode()
+
+
 
         css = f"""
         <style>
