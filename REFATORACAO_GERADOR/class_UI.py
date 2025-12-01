@@ -54,7 +54,6 @@ class UI:
         st.write("")
 
         arquivo_texto = st.file_uploader("Carregue um arquivo texto:",type=["txt"])
-
         if arquivo_texto is not None:
             st.session_state.input_texto = arquivo_texto.read().decode("utf-8")
         else:
@@ -64,21 +63,18 @@ class UI:
         texto_digitado = st.text_area("Ou insira um texto:", value=st.session_state.input_texto,height=150,on_change=self.atualizaTexto())
 
         with st.form(key="gerar_musica"):
-
             self.volume = st.slider("Volume",0,127,127)
             self.oitava = st.selectbox("Oitava:",opcoes_oitava,index=opcoes_oitava.index(OITAVA_DEFAULT))
             self.bpm = st.number_input("Bpm:",10,280,120,10)
             self.instrumento = st.selectbox("Instrumento:",opcoes_instrumentos,index=opcoes_instrumentos.index(VALOR_INSTRUMENTO_DEFAULT))
 
             botao_gerar = st.form_submit_button(label="Gerar Música")
-
             if botao_gerar:
                 if not texto_digitado.strip():
                     st.warning("Insira um texto OU carregue um arquivo!")
                     return
          
                 self.texto_converter = texto_digitado
-
                 self.music_services = MusicServices(texto_digitado,self.instrumento,self.oitava,self.volume,self.bpm)
 
                 #salva a música no buffer de estado
