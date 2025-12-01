@@ -64,15 +64,44 @@ class UI:
         elif st.session_state.screen == "tela_player":
             self.telaPlayer()
 
-    def mudaTela(self,nome_tela):
+    #def mudaTela(self,nome_tela):
+    #    st.session_state.oitava = getattr(self, "oitava", OITAVA_DEFAULT)
+    #    st.session_state.bpm = getattr(self, "bpm", BPM_DEFAULT)
+    #    st.session_state.instrumento = getattr(self, "instrumento", INSTRUMENTO_DEFAULT)
+    #    st.session_state.volume = getattr(self, "volume", VOLUME_DEFAULT)
+    #    st.session_state.texto_digitado = getattr(self, "texto_converter", "")
+#
+    #    if nome_tela == "tela_input":
+    #        st.session_state.tela_player_carregada = False
+    #        st.session_state.midi_try = False
+    #        st.session_state.midi_sucesso = None
+    #        st.session_state.texto_digitado = self.texto_converter
+    #        #Reseta lógica de download do arquivo MIDI e mantém o texto previamente inserido
+    #    st.session_state.screen = nome_tela
+    #    st.rerun()
+
+    def mudaTela(self, nome_tela):
+    # Salva parâmetros atuais antes de mudar de tela
+        if hasattr(self, "volume"):
+            st.session_state.volume = self.volume
+        if hasattr(self, "oitava"):
+            st.session_state.oitava = self.oitava
+        if hasattr(self, "bpm"):
+            st.session_state.bpm = self.bpm
+        if hasattr(self, "instrumento"):
+            st.session_state.instrumento = self.instrumento
+        if hasattr(self, "texto_converter"):
+            st.session_state.texto_digitado = self.texto_converter
+    
         if nome_tela == "tela_input":
+            # Reseta lógica do MIDI para voltar da tela player
             st.session_state.tela_player_carregada = False
             st.session_state.midi_try = False
             st.session_state.midi_sucesso = None
-            st.session_state.texto_digitado = self.texto_converter
-            #Reseta lógica de download do arquivo MIDI e mantém o texto previamente inserido
+    
         st.session_state.screen = nome_tela
         st.rerun()
+
 
     def atualizaTexto(self):
         pass
@@ -108,10 +137,14 @@ class UI:
                 st.toast("Digite alguma coisa!",icon="🚨")
 
         with st.form(key="gerar_musica"):
-            self.volume = st.slider("Volume",0,127,127)
-            self.oitava = st.selectbox("Oitava:",opcoes_oitava,index=opcoes_oitava.index(OITAVA_DEFAULT))
-            self.bpm = st.number_input("Bpm:",10,280,120,10)
-            self.instrumento = st.selectbox("Instrumento:",opcoes_instrumentos,index=opcoes_instrumentos.index(INSTRUMENTO_DEFAULT))
+            #self.volume = st.slider("Volume",0,127,127)
+            self.volume = st.slider("Volume",0,127,value=st.session_state.get("volume",VOLUME_DEFAULT))
+            #self.oitava = st.selectbox("Oitava:",opcoes_oitava,index=opcoes_oitava.index(OITAVA_DEFAULT))
+            self.oitava = st.selectbox("Oitava:",opcoes_oitava,index=opcoes_oitava.index(st.session_state.get("oitava",OITAVA_DEFAULT)))
+            #self.bpm = st.number_input("Bpm:",10,280,120,10)
+            self.bpm = st.number_input("Bpm:",10,280,value=st.session_state.get("bpm",BPM_DEFAULT),step=10)
+            #self.instrumento = st.selectbox("Instrumento:",opcoes_instrumentos,index=opcoes_instrumentos.index(INSTRUMENTO_DEFAULT))
+            self.instrumento = st.selectbox("Instrumento:",opcoes_instrumentos,index=opcoes_instrumentos.index(st.session_state.get("instrumento",INSTRUMENTO_DEFAULT)))
             #Guarda os parametros deinidos 
 
             botao_gerar = st.form_submit_button(label="Gerar Música")
