@@ -1,7 +1,6 @@
 #ARMAZENA UM CONJUNTO DE VALORES (valorMIDI,oitava,bpm,volume,instrumento) que define um objeto Nota
 
 from enum_Valores import ValoresNotas
-from class_Utilidades import DISTANCIA_OITAVA
 
 NOTA_DEFAULT = 'C'
 
@@ -17,13 +16,3 @@ class Nota:
             self.valorMIDI = ValoresNotas[caractere].value
         else:
             self.valorMIDI = None
-
-        self.calculaValorMIDI()
-
-    def calculaValorMIDI(self):
-        base_mais_oitava = self.valorMIDI + (DISTANCIA_OITAVA * self.oitava)
-        if base_mais_oitava <= 127:
-            self.valorMIDI = base_mais_oitava
-        else:
-            pass
-        

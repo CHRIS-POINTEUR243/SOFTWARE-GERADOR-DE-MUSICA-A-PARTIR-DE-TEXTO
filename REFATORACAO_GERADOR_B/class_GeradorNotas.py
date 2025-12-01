@@ -96,8 +96,8 @@ class GeradorNotas:
         if nota is not None:
                 self.lista_notas.append(nota)
 
-    def repeteNota(self):
-        nota = Nota(self.lista_tokens[-2],
+    def repeteNota(self,ant):
+        nota = Nota(ant,
                     self.oitava_atual,
                     self.bpm_atual,
                     self.volume_atual,
@@ -122,7 +122,7 @@ class GeradorNotas:
         ant = self.lista_tokens[idx - 1]  
 
         if ant in ValoresNotas.__members__:
-            nota_repetida = self.repeteNota()
+            nota_repetida = self.repeteNota(ant)
             if nota_repetida:
                 self.lista_notas.append(nota_repetida)
         else:
