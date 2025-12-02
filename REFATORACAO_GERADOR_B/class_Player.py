@@ -21,7 +21,11 @@ class Player:
     def play(self):
         for nota in self.musica:
             if nota.valorMIDI is not None:
-                notaMIDI = nota.valorMIDI + (DISTANCIA_OITAVA * nota.oitava)
+                base_mais_oitava = nota.valorMIDI + (DISTANCIA_OITAVA * nota.oitava)
+                if base_mais_oitava <= 127:
+                    notaMIDI = base_mais_oitava
+                else:
+                    notaMIDI = nota.valorMIDI
                 valor_instrumento = ValoresInstrumentos[nota.instrumento].value
                 midi_out.set_instrument(valor_instrumento)
                 midi_out.note_on(notaMIDI,nota.volume)
