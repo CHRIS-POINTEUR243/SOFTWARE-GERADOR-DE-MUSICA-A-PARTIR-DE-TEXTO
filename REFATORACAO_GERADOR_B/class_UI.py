@@ -26,30 +26,7 @@ class UI:
         st.set_page_config(page_title="Gerador de Música", page_icon="🎵")
         #Nome na aba da interface
 
-        #self.inicializaImagem()
         self.inicializaCabecalho()
-
-    def inicializaImagem(self):
-        path_imagem = "fundo_roxo.jpg"
-        if not os.path.exists(path_imagem):
-            st.error(f"Arquivo não encontrado: {path_imagem}")
-            return
-        with open("fundo_roxo.jpg", "rb") as image:  
-            encoded = base64.b64encode(image.read()).decode()
-
-        css = f"""
-        <style>
-        .stApp {{
-            background-image: url("data:image/jpeg;base64,{encoded}");
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-        }}
-        </style>
-        """
-        st.markdown(css, unsafe_allow_html=True)
-
-        #Tratamento da imagem no fundo da interface
 
     def inicializaCabecalho(self):
         st.markdown(
