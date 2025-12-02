@@ -13,6 +13,7 @@ midi_out = pygame.midi.Output(port, 0)
 
 from class_Utilidades import Utilidades,DISTANCIA_OITAVA
 from enum_Valores import ValoresInstrumentos
+VALOR_MIDI_MAX = 127
 
 class Player:
     def __init__(self,musica):
@@ -22,7 +23,7 @@ class Player:
         for nota in self.musica:
             if nota.valorMIDI is not None:
                 base_mais_oitava = nota.valorMIDI + (DISTANCIA_OITAVA * nota.oitava)
-                if base_mais_oitava <= 127:
+                if base_mais_oitava <= VALOR_MIDI_MAX:
                     notaMIDI = base_mais_oitava
                 else:
                     notaMIDI = nota.valorMIDI

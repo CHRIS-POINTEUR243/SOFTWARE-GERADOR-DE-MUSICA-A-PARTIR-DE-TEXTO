@@ -7,6 +7,8 @@ from class_Nota import Nota,NOTA_DEFAULT
 from enum_Valores import Tokens,ValoresNotas,ValoresInstrumentos
 from class_Utilidades import Utilidades,DISTANCIA_OITAVA,UNIDADE_BPM
 
+VOLUME_MAX = 127
+
 class GeradorNotas:
     def __init__(self,lista_tokens,instrumento,oitava,volume,bpm):
         self.lista_tokens = lista_tokens
@@ -68,10 +70,10 @@ class GeradorNotas:
         
     def dobraVolume(self):
         volume_dobrado = self.volume_atual * 2
-        if volume_dobrado <= 127:
+        if volume_dobrado <= VOLUME_MAX:
             self.volume_atual = volume_dobrado
         else:
-            self.volume_atual = 127
+            self.volume_atual = VOLUME_MAX
 
     def aumentaOitava(self):
         self.oitava_atual += 1
